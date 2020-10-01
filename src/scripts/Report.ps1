@@ -2,19 +2,19 @@
 
 $information = [PSCustomObject]@{
     AntiVirus           = Get-MpComputerStatus;
-    WindowsCapabilities = Get-WindowsCapability -Online;
+    WindowsCapabilities = Get-WindowsCapabailities;
     HotFixes            = Get-WmiObject -Class Win32_QuickFixEngineering;
     RootCertificates    = Get-ChildItem Cert:\LocalMachine\Root;
-    FireWall            = @{
-        FireWallRules    = Get-NetFirewallRule
-        FireWallProfiles = Get-NetFirewallProfile;
+    Firewall            = @{
+        Rules    = Get-FirewallRules;
+        Profiles = Get-FirewallProfiles;
     };
     Software            = @{
-        RegistrySoftware = Get-InstalledSoftware;
-        AppX             = Get-AppXSoftware;
-        AppV             = Get-AppVSoftware;
+        Registry = Get-InstalledSoftware;
+        AppX     = Get-AppXSoftware;
+        AppV     = Get-AppVSoftware;
     };
-    TPMSettings         = Get-TPM;
+    TPMSettings         = Get-TPMSettings;
     DirectAccess        = @{
         Setting      = Get-DAClientExperienceConfiguration;
         Certificates = Get-ChildItem Cert:\LocalMachine\My;
@@ -41,8 +41,11 @@ $information = [PSCustomObject]@{
     Storage             = Get-Volume;
     Processes           = Get-Process;
     Startup             = Get-WMIInfo Win32_StartupCommand;
-    MSInfo32            = Get-ComputerInfo;
+    MSInfo32            = Get-MSInfo32;
 }
 
-$information | ConvertTo-Json -Depth 100 | Set-Content "info.json"
+Write-Log "Creating json file."
+$json = $information | ConvertTo-Json -Depth 4
+$json | Set-Content "$env:COMPUTERNAME.json"
+Set-Content "data.js" "window.data = $json;"
 Write-Log "Created json file."

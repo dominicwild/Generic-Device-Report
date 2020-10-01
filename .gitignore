@@ -4,8 +4,11 @@
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
 
-Archive/
-
+Archive/*
+GB-5CG002691G.json
+data.js
+info*.json
+test*.json
 
 # User-specific files
 *.rsuser
@@ -355,3 +358,4 @@ MigrationBackup/
 
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
+info.json

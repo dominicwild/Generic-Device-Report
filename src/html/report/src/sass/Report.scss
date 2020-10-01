@@ -1,0 +1,23 @@
+.report {
+  .header,
+  .footer {
+    text-align: center;
+    background-color: #008ECC;
+    color: white;
+    font-size: 24pt;
+    font-weight: 400;
+    padding: 10px 0;
+  }
+
+  .footer {
+      height: 83px;
+  }
+
+  .header {
+      padding: 20px;
+  }
+
+  .body {
+      padding: 20px 20px;
+  }
+}

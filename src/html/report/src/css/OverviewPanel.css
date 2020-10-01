@@ -1,0 +1,38 @@
+.overview-panel {
+  display: inline-block;
+}
+
+.overview-panel .title {
+  background-color: #085985;
+  color: white;
+  border-top-left-radius: 1em;
+  border-top-right-radius: 1em;
+  padding: 5px;
+}
+
+.overview-panel h1 {
+  margin: 0;
+  padding: 0;
+  font-weight: 400;
+  padding-left: 7px;
+}
+
+.overview-panel .key {
+  padding-right: 10px;
+  border-right: solid black 1px;
+  padding: 5px 10px;
+  background-color: #DCDCDC;
+}
+
+.overview-panel .value {
+  padding: 5px 10px;
+}
+
+.overview-panel table {
+  border-collapse: collapse;
+}
+
+.overview-panel tr {
+  border: solid black 1px;
+}
+/*# sourceMappingURL=OverviewPanel.css.map */

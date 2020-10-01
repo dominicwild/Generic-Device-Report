@@ -1,0 +1,9 @@
+{
+    "version": 3,
+    "mappings": "AAAA,AAAA,YAAY,CAAC;EACT,MAAM,EAAE,KAAK;CAChB",
+    "sources": [
+        "../sass/ReportData.scss"
+    ],
+    "names": [],
+    "file": "ReportData.css"
+}

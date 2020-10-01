@@ -24,7 +24,7 @@ Function Get-InstalledSoftware {
     $count = $regSoftware.Count - $count
     Write-Log "Found $count pieces of software."
 
-    $regSoftware = $regSoftware |? {$_.DisplayName} |  Sort-Object -Unique -Property DisplayName
+    $regSoftware = $regSoftware | ? { $_.DisplayName } |  Sort-Object -Unique -Property DisplayName
 
 
     foreach ($installedSoftware in $regSoftware) {
@@ -37,19 +37,19 @@ Function Get-InstalledSoftware {
             Readme           = $installedSoftware.Readme; # Not Common
             WindowsInstaller = $installedSoftware.WindowsInstaller; # Not Common
             InstallSource    = $installedSoftware.InstallSource;
+            InstallDate      = ConvertTo-DateTime $installedSoftware.InstallDate;
+            InstallLocation  = $installedSoftware.InstallLocation; # Not Common
+            UninstallString  = $installedSoftware.UninstallString;
             HelpTelephone    = $installedSoftware.HelpTelephone; # Not Common
             Contact          = $installedSoftware.Contact; # Not Common
             Language         = $installedSoftware.Language;
             URLUpdateInfo    = $installedSoftware.URLUpdateInfo; # Not Common
             Comments         = $installedSoftware.Comments; # Not Common
-            InstallDate      = $installedSoftware.InstallDate;
             HelpLink         = $installedSoftware.HelpLink; # Not Common
             ModifyPath       = $installedSoftware.ModifyPath; 
             URLInfoAbout     = $installedSoftware.URLInfoAbout; # Not Common
-            InstallLocation  = $installedSoftware.InstallLocation; # Not Common
             EstimatedSize    = $installedSoftware.EstimatedSize;
             Publisher        = $installedSoftware.Publisher; 
-            UninstallString  = $installedSoftware.UninstallString;
             Size             = $installedSoftware.Size
         }
     }
@@ -62,7 +62,7 @@ Function Get-InstalledSoftware {
 Function Get-AppXSoftware {
     Write-Log "Searching AppX packages."
     try {
-        return Get-AppxPackage -AllUsers
+        return Get-AppxPackage -AllUsers | ConvertTo-EnumsAsStrings -Depth 4
     } catch {
         Write-Log "Unable to get AppX packages."
         Write-Log $_
@@ -79,37 +79,124 @@ Function Get-AppVSoftware {
     }
 }
 
+Function Get-TPMSettings {
+    Write-Log "Getting TPM Settings."
+    return Get-TPM | ConvertTo-EnumsAsStrings
+}
+
 Function Get-WMIInfo ($class) {
+    Write-Log "Getting information from WMI Object '$class'."
     return  Get-WmiObject -Class $class | Select-Object -Property *
 }
 
 Function Get-System {
+    Write-Log "Getting System information."
     $system = Get-WMIInfo Win32_ComputerSystem;
     return $system
 }
 
 Function Get-ActivationStatus {
+    Write-Log "Getting Activation Status."
+
     $licenseStatus = @{0 = "Unlicensed"; 1 = "Licensed"; 2 = "Out Of Box Grace Period"; 3 = "Out Of Time Grace period"; 4 = "Non-Genuine Grace Period"; 5 = "Notification Period"; 6 = "Extended Grace Period" }
     $ActivationStatus = $licenseStatus[[int]$(Get-WmiObject SoftwareLicensingProduct -Filter "ApplicationID = '55c92734-d682-4d71-983e-d6ec3f16059f' AND PartialProductKey like '%'").LicenseStatus]
     return $ActivationStatus
 }
 
 Function Get-OperatingSystem {
-    $OperatingSystem = Get-WMIInfo Win32_OperatingSystem;
+    Write-Log "Getting Operating System Information."
+    $OperatingSystem = Get-WMIInfo Win32_OperatingSystem
 
-    $date = $OperatingSystem.InstallDate.ToString()
-    $dateArgs = @{Year = $date.SubString(0, 4); Month = $date.SubString(4, 2); Day = $date.SubString(6, 2); Hour = $date.SubString(8, 2); Minute = $date.SubString(10, 2) }
-    $InstallDate = Get-Date @dateArgs
+    $InstallDate = ConvertTo-DateTime $OperatingSystem.InstallDate.ToString()
     $OperatingSystem.InstallDate = $InstallDate
     
     return $OperatingSystem 
 }
 
-Function Get-RegValues ($location){
-    return Get-ChildItem $location -Recurse | Get-ItemProperty
+Function Get-RegValues ($location) {
+    Write-Log "Getting registry values from '$location'."
+    return Get-ChildItem $location -Recurse | Get-ItemProperty | Select-Object -Property * -Exclude PSProvider
 }
 
 Function Get-BitLocker {
     # Needs parsing
     (manage-bde.exe -status)
+}
+
+Function Get-Logs {
+    # Get System logs from software and filter based on useful ones
+}
+
+Function ConvertTo-DateTime([string]$dateString) {
+    switch -Regex ($dateString) {
+
+        "^\d{14}\.\d{6}\+\d{3}$" {
+            $dateArgs = @{Year = $date.SubString(0, 4); Month = $date.SubString(4, 2); Day = $date.SubString(6, 2); Hour = $date.SubString(8, 2); Minute = $date.SubString(10, 2) }
+            $date = Get-Date @dateArgs
+            return $date | Select-Object -Property *
+        }
+
+        "^\d{8}$" {
+            $dateArgs = @{Year = $dateString.SubString(0, 4); Month = $dateString.SubString(4, 2); Day = $dateString.SubString(6, 2); }
+            $date = Get-Date @dateArgs
+            return $date | Select-Object -Property *
+        }
+
+        default {
+            try {
+                return ([DateTime]$dateString) | Select-Object -Property *
+            } catch {
+                return $null
+            }
+        }
+    }
+}
+
+Function Get-MSInfo32 {
+    Write-Log "Getting MSInfo32 info."
+    $MSInfo32 = Get-ComputerInfo
+
+    return $MSInfo32 | ConvertTo-EnumsAsStrings -Depth 4
+}
+
+Function Get-WindowsCapabailities {
+    Write-Log "Getting Windows capabilities."
+    return Get-WindowsCapability -Online | ConvertTo-EnumsAsStrings -Depth 4
+}
+
+Function Get-FirewallRules {
+    Write-Log "Getting firewall rules."
+    return Get-NetFirewallRule | Select-Object -Property * -ExcludeProperty CimClass, CimInstanceProperties, CimSystemProperties | ConvertTo-EnumsAsStrings
+}
+
+Function Get-FirewallProfiles {
+    Write-Log "Getting firewall profiles."
+    return Get-NetFirewallProfile | Select-Object -Property * -ExcludeProperty CimClass, CimInstanceProperties, CimSystemProperties | ConvertTo-EnumsAsStrings
+}
+
+Filter ConvertTo-EnumsAsStrings ([int] $Depth = 2, [int] $CurrDepth = 0) {
+    if ($_ -is [enum]) {
+        # enum value -> convert to symbolic name as string
+        $_.ToString() 
+    } elseif ($null -eq $_ -or $_.GetType().IsPrimitive -or $_ -is [string] -or $_ -is [decimal] -or $_ -is [datetime] -or $_ -is [datetimeoffset]) {
+        $_
+    } elseif ($_ -is [Collections.IEnumerable]) {
+        , ($_ | ConvertTo-EnumsAsStrings -Depth $Depth -CurrDepth ($CurrDepth + 1))
+    } else {
+        # non-primitive type -> recurse on properties
+        if ($CurrDepth -gt $Depth) {
+            # depth exceeded -> return .ToString() representation
+            "$_"
+        } else {
+            $oht = [ordered] @{}
+            foreach ($prop in $_.psobject.properties) {
+                if ($prop.Value -is [Collections.IEnumerable] -and -not $prop.Value -is [string]) {
+                    $oht[$prop.Name] = @($prop.Value | ConvertTo-EnumsAsStrings -Depth $Depth -CurrDepth ($CurrDepth + 1))
+                } else {      
+                    $oht[$prop.Name] = $prop.Value | ConvertTo-EnumsAsStrings -Depth $Depth -CurrDepth ($CurrDepth + 1)
+                }
+            }
+            $oht
+        }
+    }
 }

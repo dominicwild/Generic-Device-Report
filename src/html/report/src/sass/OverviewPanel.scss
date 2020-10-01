@@ -1,0 +1,45 @@
+.overview-panel {
+
+    display:inline-block;
+    // width: 100px;
+    $cellPadding: 5px 10px;
+
+    .title {
+        background-color: #085985;//#2A2A72; //#096192
+        color: white;
+        border-top-left-radius: 1em;
+        border-top-right-radius: 1em;
+        padding: 5px;
+    }
+
+    h1 {
+        margin: 0;
+        padding: 0;
+        font-weight: 400;
+        padding-left: 7px;
+    }
+
+    .content {
+        
+    }
+    
+    .key {
+        padding-right: 10px;
+        border-right: solid black 1px;
+        padding: $cellPadding;
+        background-color: #DCDCDC;
+    }
+
+    .value {
+        padding: $cellPadding;
+    }
+
+    table {
+        // border: solid black 1px;
+        border-collapse: collapse;
+    }
+    tr {
+        // outline: thin solid;
+        border: solid black 1px;
+    }
+}

@@ -1,0 +1,105 @@
+import React, { Component } from "react";
+import $ from "jquery";
+import "datatables.net-dt/css/jquery.dataTables.css";
+import "../css/Datatable.css";
+import "moment";
+import "datetime-moment";
+
+$.DataTable = require("datatables.net");
+
+class Datatable extends Component {
+  constructor(props) {
+    super();
+  }
+
+  componentDidMount = () => {
+    const { data, config } = this.props;
+    const paging = (data.length > 15) | config?.paging;
+
+    let options = {
+      paging,
+      dom: '<"top"if>rt<"bottom"lp><"clear">',
+    };
+
+    if (config) {
+      options = { ...options, ...config };
+    }
+
+    console.log(options)
+    console.log(config)
+
+    $(`#${this.props.id}`).DataTable({
+      ...options,
+    });
+
+    if (config?.dateFormat) {
+      // $(`#${this.props.id}`).DataTable.moment(config.dateFormat);
+    }
+
+    console.log($(`#${this.props.id}`).DataTable())
+  };
+
+  makeFooter = () => {
+    const { data, columns, id } = this.props;
+    if (data.length > 15) {
+      return (
+        <tfoot>
+          <tr>
+            {columns.map((col) => {
+              return <th key={`${id}${col.Name}bottom}}`}>{col.Name}</th>;
+            })}
+          </tr>
+        </tfoot>
+      );
+    }
+  };
+
+  render() {
+    const { data, columns, id, title, config } = this.props;
+
+    // console.log(data);
+    // console.log(columns);
+
+    return (
+      <div className="datatable-container">
+        <h1>{title}</h1>
+        <div className="datatable-table">
+          <table id={id} className="display">
+            <thead>
+              <tr>
+                {columns.map((col) => {
+                  return (
+                    <th key={`${id}${col.Name}top}}${Math.random()}`} className={col.Name.replace(" ", "-")} style={col.style}>
+                      {col.Name}
+                    </th>
+                  );
+                })}
+              </tr>
+            </thead>
+            <tbody>
+              {data.map((row, index) => {
+                return (
+                  <tr key={`${id}${index}row}}${Math.random()}`}>
+                    {columns.map((col) => {
+                      let val = row[col.Value];
+                      if (col.function) {
+                        val = col.function(val, row);
+                      }
+                      if (val == null) {
+                        val = "Unknown";
+                      }
+                      return <td key={`${id}${col.Name}${val}val}}${Math.random()}`}>{val}</td>;
+                    })}
+                  </tr>
+                );
+              })}
+            </tbody>
+            {this.makeFooter()}
+          </table>
+        </div>
+      </div>
+    );
+  }
+}
+
+export default Datatable;

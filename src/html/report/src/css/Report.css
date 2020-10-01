@@ -1,0 +1,22 @@
+.report .header,
+.report .footer {
+  text-align: center;
+  background-color: #008ECC;
+  color: white;
+  font-size: 24pt;
+  font-weight: 400;
+  padding: 10px 0;
+}
+
+.report .footer {
+  height: 83px;
+}
+
+.report .header {
+  padding: 20px;
+}
+
+.report .body {
+  padding: 20px 20px;
+}
+/*# sourceMappingURL=Report.css.map */
