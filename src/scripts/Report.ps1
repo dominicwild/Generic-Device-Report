@@ -1,6 +1,9 @@
 . "$PSScriptRoot\Functions.ps1"
 
 $jsonFileName = "$env:COMPUTERNAME.json"
+$reportFolderName = "$env:COMPUTERNAME"
+$reportFolderLocation = "$PSScriptRoot\$reportFolderName"
+$buildFolder = "$PSScriptRoot\build"
 
 $information = [PSCustomObject]@{
     AntiVirus           = Get-MpComputerStatus;
@@ -49,5 +52,14 @@ $information = [PSCustomObject]@{
 Write-Log "Creating json file."
 $json = $information | ConvertTo-Json -Depth 4 -Compress
 $json | Set-Content $jsonFileName
-Set-Content "data.js" "window.data = $json;"
-Write-Log "Created json file."
+
+Write-Log "Creating report folder."
+New-Item $reportFolderLocation -ItemType Directory -Force
+
+Write-Log "Creating the report build."
+Copy-Item $buildFolder $reportFolderLocation
+Set-Content "$reportFolderLocation\data.js" "window.data = $json;"
+
+Write-Log "Created report file at $reportFolderLocation\index.html"
+
+# Invoke-Item "$reportFolderLocation\index.html"

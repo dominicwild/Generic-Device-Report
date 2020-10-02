@@ -14,7 +14,7 @@ class Datatable extends Component {
   }
 
   componentDidMount = () => {
-    const { data, config } = this.props;
+    const { data, config, id } = this.props;
     const paging = (data.length > 15) | config?.paging;
 
     let options = {
@@ -26,21 +26,24 @@ class Datatable extends Component {
       options = { ...options, ...config };
     }
 
-    console.log(options);
-    console.log(config);
-
-    $(`#${this.props.id}`).DataTable({
+    $(`#${id}`).DataTable({
       ...options,
     });
 
-    const element = document.querySelector(`#${this.props.id}`).closest(".transition-container");
+    const element = document.querySelector(`#${id}`).closest(".transition-container");
     element.style.maxHeight = element.scrollHeight + "px";
 
     if (config?.dateFormat) {
       // $(`#${this.props.id}`).DataTable.moment(config.dateFormat);
     }
 
-    console.log($(`#${this.props.id}`).DataTable());
+    const select = document.querySelector(`#${id}_wrapper select[name="${id}_length"]`);
+    if (select) {
+      select.addEventListener("onchange", (e) => {
+        element.style.maxHeight = element.scrollHeight + "px";
+      });
+    }
+    //document.querySelector('#Windows-Capabilities_wrapper select[name="Windows-Capabilities_length"]')
   };
 
   makeFooter = () => {
@@ -82,7 +85,7 @@ class Datatable extends Component {
         <h1 onClick={this.onClick} className="collapsable">
           {title}
         </h1>
-        <div className={`transition-container`} style={{ "max-height": "fit-content" }}>
+        <div className={`transition-container`}>
           <div className={`datatable-table`}>
             <table id={id} className="display">
               <thead>
