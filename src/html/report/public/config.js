@@ -75,6 +75,11 @@ function parseADPublisher(adString) {
   }
 }
 
+function toGB(bytes) {
+  const gb = bytes / 1024 ** 3;
+  return `${gb.toFixed(2)}`;
+}
+
 window.config = {
   Overview: [
     {
@@ -156,7 +161,7 @@ window.config = {
         },
         {
           Name: "Total RAM",
-          Value: `${CsPhyicallyInstalledMemory / (1024 * 1024)}GB`,
+          Value: `${CsPhyicallyInstalledMemory / 1024 ** 2}GB`,
         },
         {
           Name: "Description",
@@ -261,6 +266,52 @@ window.config = {
         },
       ],
     },
+
+    {
+      title: "Storage",
+      data: window.data.Storage,
+      columns: [
+        {
+          Name: "File System Label",
+          Value: "FileSystemLabel",
+        },
+        {
+          Name: "Driver Letter",
+          Value: "DriverLetter",
+        },
+        {
+          Name: "Type",
+          Value: "FileSystemType",
+        },
+        {
+          Name: "Drive Type",
+          Value: "DriveType",
+        },
+        {
+          Name: "Allocation Unit Size",
+          Value: "AllocationUnitSize",
+        },
+        {
+          Name: "Size (GB)",
+          Value: "Size",
+          function: (value) => {
+            return toGB(value);
+          },
+        },
+        {
+          Name: "Size Remaining (GB)",
+          Value: "SizeRemaining",
+          function: (value) => {
+            return toGB(value);
+          },
+        },
+        {
+          Name: "Status",
+          Value: "OperationalStatus",
+        },
+      ],
+    },
+
     {
       title: "Windows Capabilities",
       data: window.data.WindowsCapabilities,
@@ -613,6 +664,69 @@ window.config = {
     },
 
     {
+      title: "Start Up",
+      data: window.data.Startup,
+      columns: [
+        {
+          Name: "Name",
+          Value: "Name",
+        },
+        {
+          Name: "Description",
+          Value: "Description",
+        },
+        {
+          Name: "User",
+          Value: "User",
+        },
+        {
+          Name: "Command",
+          Value: "Command",
+        },
+      ],
+    },
+
+    {
+      title: "Processes",
+      data: window.data.Processes,
+      columns: [
+        {
+          Name: "Id",
+          Value: "Id",
+        },
+        {
+          Name: "Name",
+          Value: "Name",
+        },
+        {
+          Name: "Description",
+          Value: "Description",
+        },
+        {
+          Name: "Company",
+          Value: "Company",
+        },
+        {
+          Name: "Responding",
+          Value: "Responding",
+          function: (value) => {
+            return "" + value;
+          },
+        },
+        {
+          Name: "Private Memory (MB)",
+          Value: "PrivateMemorySize",
+          function: value => {return `${(value/1024**2).toFixed(2)}`}
+        },
+        {
+          Name: "Start Time",
+          Value: "StartTime",
+          function: value => {return parseMSDate(value)}
+        },
+      ],
+    },
+
+    {
       title: "Services",
       data: window.data.Services,
       columns: [
@@ -720,10 +834,5 @@ window.config = {
         },
       ],
     },
-
-
-
-
-
   ],
 };

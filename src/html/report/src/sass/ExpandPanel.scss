@@ -1,0 +1,16 @@
+.expand-panel {
+  overflow: auto;
+
+  .button {
+    float: right;
+    cursor: pointer;
+    &::selection {
+        color: none;
+        background: none;
+    }
+  }
+
+  .button + .button {
+    margin-right: 10px;
+  }
+}

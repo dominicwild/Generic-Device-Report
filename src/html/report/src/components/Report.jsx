@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import "../css/Report.css";
 import Datatable from "./Datatable";
+import ExpandPanel from "./ExpandPanel";
 import Overview from "./Overview";
 import ReportData from "./ReportData";
 
@@ -14,6 +15,7 @@ class Report extends Component {
         <div className="header">System Report</div>
         <div className="body">
           <Overview data={config.Overview} />
+          <ExpandPanel />
           <ReportData />
         </div>
 

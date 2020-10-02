@@ -2,16 +2,28 @@
   $corner-radius: 1rem;
   border-top-right-radius: $corner-radius;
   border-top-left-radius: $corner-radius;
+  transition: all 0.5s ease-in-out;
 
   margin: 10px;
   border: solid black 1px;
 
-    & +.datatable-container {
-        margin-top: 2em;
+  &.hidden {
+    // border: none;
+    border-radius: $corner-radius;
+    border: solid rgba(0, 0, 0, 0) 1px;
+
+    h1 {
+      border-radius: $corner-radius;
     }
+  }
+
+  & + .datatable-container {
+    margin-top: 2em;
+  }
 
   h1 {
     margin-top: 0px;
+    margin-bottom: 0px;
     padding-bottom: 0.25em;
     background-color: #0e8c7f;
     color: white;
@@ -19,10 +31,20 @@
     border-top-right-radius: $corner-radius;
     border-top-left-radius: $corner-radius;
     font-weight: 400;
+    border: solid black 2px;
+    transition: all 0.5s;
+    cursor: pointer;
+
   }
 
   .datatable-table {
-    // padding-bottom: 1em;
+    padding-top: 1em;
+  }
+
+  .transition-container {
+    transition: max-height 0.5s;
+    overflow: hidden;
+    max-height: fit-content;
   }
 
   .top,
@@ -47,6 +69,6 @@
   }
 
   .dataTables_wrapper .dataTables_paginate {
-      margin-bottom: 1em;
+    margin-bottom: 1em;
   }
 }

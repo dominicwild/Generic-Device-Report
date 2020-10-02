@@ -10,6 +10,7 @@ $.DataTable = require("datatables.net");
 class Datatable extends Component {
   constructor(props) {
     super();
+    this.state = {};
   }
 
   componentDidMount = () => {
@@ -25,18 +26,21 @@ class Datatable extends Component {
       options = { ...options, ...config };
     }
 
-    console.log(options)
-    console.log(config)
+    console.log(options);
+    console.log(config);
 
     $(`#${this.props.id}`).DataTable({
       ...options,
     });
 
+    const element = document.querySelector(`#${this.props.id}`).closest(".transition-container");
+    element.style.maxHeight = element.scrollHeight + "px";
+
     if (config?.dateFormat) {
       // $(`#${this.props.id}`).DataTable.moment(config.dateFormat);
     }
 
-    console.log($(`#${this.props.id}`).DataTable())
+    console.log($(`#${this.props.id}`).DataTable());
   };
 
   makeFooter = () => {
@@ -54,48 +58,65 @@ class Datatable extends Component {
     }
   };
 
+  onClick = (e) => {
+    const dataTableContainer = e.target.closest(".datatable-container");
+    const target = dataTableContainer.querySelector(".transition-container");
+    if (!dataTableContainer.classList.contains("hidden")) {
+      dataTableContainer.classList.add("hidden");
+      e.target.classList.add("hidden");
+      target.style.maxHeight = 0;
+    } else {
+      dataTableContainer.classList.remove("hidden");
+      e.target.classList.remove("hidden");
+      target.style.maxHeight = target.scrollHeight + "px";
+    }
+  };
+
   render() {
     const { data, columns, id, title, config } = this.props;
-
     // console.log(data);
     // console.log(columns);
 
     return (
       <div className="datatable-container">
-        <h1>{title}</h1>
-        <div className="datatable-table">
-          <table id={id} className="display">
-            <thead>
-              <tr>
-                {columns.map((col) => {
+        <h1 onClick={this.onClick} className="collapsable">
+          {title}
+        </h1>
+        <div className={`transition-container`} style={{ "max-height": "fit-content" }}>
+          <div className={`datatable-table`}>
+            <table id={id} className="display">
+              <thead>
+                <tr>
+                  {columns.map((col) => {
+                    return (
+                      <th key={`${id}${col.Name}top}}${Math.random()}`} className={col.Name.replace(" ", "-")} style={col.style}>
+                        {col.Name}
+                      </th>
+                    );
+                  })}
+                </tr>
+              </thead>
+              <tbody>
+                {data.map((row, index) => {
                   return (
-                    <th key={`${id}${col.Name}top}}${Math.random()}`} className={col.Name.replace(" ", "-")} style={col.style}>
-                      {col.Name}
-                    </th>
+                    <tr key={`${id}${index}row}}${Math.random()}`}>
+                      {columns.map((col) => {
+                        let val = row[col.Value];
+                        if (col.function) {
+                          val = col.function(val, row);
+                        }
+                        if (val == null) {
+                          val = "Unknown";
+                        }
+                        return <td key={`${id}${col.Name}${val}val}}${Math.random()}`}>{val}</td>;
+                      })}
+                    </tr>
                   );
                 })}
-              </tr>
-            </thead>
-            <tbody>
-              {data.map((row, index) => {
-                return (
-                  <tr key={`${id}${index}row}}${Math.random()}`}>
-                    {columns.map((col) => {
-                      let val = row[col.Value];
-                      if (col.function) {
-                        val = col.function(val, row);
-                      }
-                      if (val == null) {
-                        val = "Unknown";
-                      }
-                      return <td key={`${id}${col.Name}${val}val}}${Math.random()}`}>{val}</td>;
-                    })}
-                  </tr>
-                );
-              })}
-            </tbody>
-            {this.makeFooter()}
-          </table>
+              </tbody>
+              {this.makeFooter()}
+            </table>
+          </div>
         </div>
       </div>
     );

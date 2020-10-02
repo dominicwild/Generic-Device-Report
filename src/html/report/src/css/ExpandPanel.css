@@ -1,0 +1,23 @@
+.expand-panel {
+  overflow: auto;
+}
+
+.expand-panel .button {
+  float: right;
+  cursor: pointer;
+}
+
+.expand-panel .button::-moz-selection {
+  color: none;
+  background: none;
+}
+
+.expand-panel .button::selection {
+  color: none;
+  background: none;
+}
+
+.expand-panel .button + .button {
+  margin-right: 10px;
+}
+/*# sourceMappingURL=ExpandPanel.css.map */
