@@ -1,5 +1,7 @@
 . "$PSScriptRoot\Functions.ps1"
 
+$jsonFileName = "$env:COMPUTERNAME.json"
+
 $information = [PSCustomObject]@{
     AntiVirus           = Get-MpComputerStatus;
     WindowsCapabilities = Get-WindowsCapabailities;
@@ -45,7 +47,7 @@ $information = [PSCustomObject]@{
 }
 
 Write-Log "Creating json file."
-$json = $information | ConvertTo-Json -Depth 4
-$json | Set-Content "$env:COMPUTERNAME.json"
+$json = $information | ConvertTo-Json -Depth 4 -Compress
+$json | Set-Content $jsonFileName
 Set-Content "data.js" "window.data = $json;"
 Write-Log "Created json file."
