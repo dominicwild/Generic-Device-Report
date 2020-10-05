@@ -89,6 +89,10 @@ Function Get-WMIInfo ($class) {
     return  Get-WmiObject -Class $class | Select-Object -Property *
 }
 
+Function Get-Antivirus {
+    return Get-MpComputerStatus | Select-Object -Property * -ExcludeProperty CimClass, CimInstanceProperties, CimSystemProperties
+}
+
 Function Get-System {
     Write-Log "Getting System information."
     $system = Get-WMIInfo Win32_ComputerSystem;

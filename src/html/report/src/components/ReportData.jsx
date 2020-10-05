@@ -10,7 +10,10 @@ class ReportData extends Component {
       <div className="report-data">
         {tables.map((table) => {
           const id = table.title.replaceAll(" ", "-").replaceAll("(", "").replaceAll(")", "")
-          return <Datatable config={table.options} data={table.data} columns={table.columns} title={table.title} id={id} key={`${table.title}table}}`}/>;
+          if(table.data.map != null){
+            return <Datatable config={table.options} data={table.data} columns={table.columns} title={table.title} id={id} key={`${table.title}table}}`}/>;
+          }
+          return "";
         })}
       </div>
     );

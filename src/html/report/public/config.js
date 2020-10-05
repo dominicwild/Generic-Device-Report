@@ -15,6 +15,7 @@ const {
   BiosVersion,
   BiosManufacturer,
   CsPhyicallyInstalledMemory,
+  CsTotalPhysicalMemory,
   CsDescription,
   CsDNSHostName,
   CsDomain,
@@ -25,6 +26,8 @@ const {
   CsSystemType,
   CsStatus,
 } = window.data.MSInfo32;
+
+const { TotalVisibleMemorySize } = window.data.Computer.OperatingSystem;
 
 const activationStatus = window.data.Computer.ActivationStatus;
 
@@ -79,6 +82,21 @@ function toGB(bytes) {
   const gb = bytes / 1024 ** 3;
   return `${gb.toFixed(2)}`;
 }
+
+let ram = 0;
+if (CsModel === "Virtual Machine") {
+  ram = `${(TotalVisibleMemorySize / 1024 ** 2).toFixed(2)}GB`;
+} else {
+  ram = `${CsPhyicallyInstalledMemory / 1024 ** 2}GB`;
+}
+// Name: "Total RAM",
+//           Value: `${(CsPhyicallyInstalledMemory / 1024 ** 2)}GB`,
+//           function: value => {
+//             if(CsModel === "Virtual Machine"){
+//               return `${(TotalVisibleMemorySize / 1024 ** 2)}GB`
+//             }
+//             return value;
+//           },
 
 window.config = {
   Overview: [
@@ -161,7 +179,7 @@ window.config = {
         },
         {
           Name: "Total RAM",
-          Value: `${CsPhyicallyInstalledMemory / 1024 ** 2}GB`,
+          Value: `${ram}`,
         },
         {
           Name: "Description",
@@ -716,12 +734,16 @@ window.config = {
         {
           Name: "Private Memory (MB)",
           Value: "PrivateMemorySize",
-          function: value => {return `${(value/1024**2).toFixed(2)}`}
+          function: (value) => {
+            return `${(value / 1024 ** 2).toFixed(2)}`;
+          },
         },
         {
           Name: "Start Time",
           Value: "StartTime",
-          function: value => {return parseMSDate(value)}
+          function: (value) => {
+            return parseMSDate(value);
+          },
         },
       ],
     },

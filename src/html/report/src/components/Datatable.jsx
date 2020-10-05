@@ -1,9 +1,11 @@
 import React, { Component } from "react";
+import SVG from "react-inlinesvg";
 import $ from "jquery";
 import "datatables.net-dt/css/jquery.dataTables.css";
 import "../css/Datatable.css";
 import "moment";
 import "datetime-moment";
+import Carat from "../SVG/Carat";
 
 $.DataTable = require("datatables.net");
 
@@ -30,20 +32,23 @@ class Datatable extends Component {
       ...options,
     });
 
-    const element = document.querySelector(`#${id}`).closest(".transition-container");
-    element.style.maxHeight = element.scrollHeight + "px";
-
     if (config?.dateFormat) {
       // $(`#${this.props.id}`).DataTable.moment(config.dateFormat);
     }
 
+    const element = document.querySelector(`#${id}`).closest(".transition-container");
+    // element.style.maxHeight = element.scrollHeight + "px";
+    element.addEventListener("onclick", this.setHeight);
+    element.querySelectorAll(".paginate_button").forEach((item) => {
+      item.addEventListener("onclick", this.setHeight);
+    });
+
     const select = document.querySelector(`#${id}_wrapper select[name="${id}_length"]`);
     if (select) {
       select.addEventListener("onchange", (e) => {
-        element.style.maxHeight = element.scrollHeight + "px";
+        // element.style.maxHeight = element.scrollHeight + "px";
       });
     }
-    //document.querySelector('#Windows-Capabilities_wrapper select[name="Windows-Capabilities_length"]')
   };
 
   makeFooter = () => {
@@ -67,23 +72,30 @@ class Datatable extends Component {
     if (!dataTableContainer.classList.contains("hidden")) {
       dataTableContainer.classList.add("hidden");
       e.target.classList.add("hidden");
-      target.style.maxHeight = 0;
     } else {
       dataTableContainer.classList.remove("hidden");
       e.target.classList.remove("hidden");
-      target.style.maxHeight = target.scrollHeight + "px";
     }
+  };
+
+  setHeight = (e) => {
+    const { id } = this.props;
+    const element = document.querySelector(`#${id}`).closest(".transition-container");
+    // element.style.maxHeight = element.scrollHeight + "px";
   };
 
   render() {
     const { data, columns, id, title, config } = this.props;
-    // console.log(data);
+    console.log(data);
     // console.log(columns);
 
     return (
       <div className="datatable-container">
         <h1 onClick={this.onClick} className="collapsable">
-          {title}
+          <span className="title">{title}</span>
+          <div className="expand-icon">
+            <Carat />
+          </div>
         </h1>
         <div className={`transition-container`}>
           <div className={`datatable-table`}>

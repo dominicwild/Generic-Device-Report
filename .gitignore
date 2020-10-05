@@ -9,6 +9,9 @@ GB-5CG002691G.json
 data.js
 info*.json
 test*.json
+SOE-ROUTER01
+SOE-ROUTER01.json
+
 
 # User-specific files
 *.rsuser
