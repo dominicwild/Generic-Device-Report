@@ -22,7 +22,7 @@ $information = [PSCustomObject]@{
     TPMSettings         = Get-TPMSettings;
     DirectAccess        = @{
         Setting      = Get-DAClientExperienceConfiguration;
-        Certificates = Get-ChildItem Cert:\LocalMachine\My;
+        Certificates = Get-DirectAccessCertificates;
     };
     Computer            = @{
         ActivationStatus = Get-ActivationStatus;
@@ -41,9 +41,9 @@ $information = [PSCustomObject]@{
         CSC = Get-RegValues "HKLM:\SOFTWARE\CSC\"; 
     };
     Network             = @{
-        Interfaces = Get-NetAdapter;
+        Interfaces = Get-NetworkInterfaces;
     };
-    Storage             = Get-Volume;
+    Storage             = Get-Storage;
     Processes           = Get-Process;
     Startup             = Get-WMIInfo Win32_StartupCommand;
     MSInfo32            = Get-MSInfo32;

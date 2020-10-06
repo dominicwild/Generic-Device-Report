@@ -62,7 +62,7 @@ Function Get-InstalledSoftware {
 Function Get-AppXSoftware {
     Write-Log "Searching AppX packages."
     try {
-        return Get-AppxPackage -AllUsers | ConvertTo-EnumsAsStrings -Depth 4
+        return Get-AppxPackage -AllUsers | Select-Object -Property * -ExcludeProperty PackageUserInformation | ConvertTo-EnumsAsStrings -Depth 4 
     } catch {
         Write-Log "Unable to get AppX packages."
         Write-Log $_
@@ -86,11 +86,15 @@ Function Get-TPMSettings {
 
 Function Get-WMIInfo ($class) {
     Write-Log "Getting information from WMI Object '$class'."
-    return  Get-WmiObject -Class $class | Select-Object -Property *
+    $exclude = @("Scope", "Path", "Options", "ClassPath", "Properties", "SystemProperties", "__GENUS", "__CLASS", 
+        "__SUPERCLASS", "__DYNASTY", "__RELPATH", "__PROPERTY_COUNT", "__DERIVATION" , 
+        "__SERVER", "__NAMESPACE", "__PATH", "PSComputerName")
+    return  Get-WmiObject -Class $class | Select-Object -Property * -ExcludeProperty $exclude
 }
 
 Function Get-Antivirus {
-    return Get-MpComputerStatus | Select-Object -Property * -ExcludeProperty CimClass, CimInstanceProperties, CimSystemProperties
+    Write-Log "Getting antivirus data."
+    return Get-MpComputerStatus | Select-Object -Property * -ExcludeProperty CimClass, CimInstanceProperties, CimSystemProperties, PSComputerName
 }
 
 Function Get-System {
@@ -99,12 +103,22 @@ Function Get-System {
     return $system
 }
 
+Function Get-NetworkInterfaces {
+    Write-Log "Getting network interfaces."
+    return Get-NetAdapter | Select-Object -Property * -ExcludeProperty CimClass, CimInstanceProperties, CimSystemProperties, PSComputerName, HigherLayerInterfaceIndices
+}
+
 Function Get-ActivationStatus {
     Write-Log "Getting Activation Status."
 
     $licenseStatus = @{0 = "Unlicensed"; 1 = "Licensed"; 2 = "Out Of Box Grace Period"; 3 = "Out Of Time Grace period"; 4 = "Non-Genuine Grace Period"; 5 = "Notification Period"; 6 = "Extended Grace Period" }
     $ActivationStatus = $licenseStatus[[int]$(Get-WmiObject SoftwareLicensingProduct -Filter "ApplicationID = '55c92734-d682-4d71-983e-d6ec3f16059f' AND PartialProductKey like '%'").LicenseStatus]
     return $ActivationStatus
+}
+
+Function Get-Storage {
+    Write-Log "Getting storage information."
+    return Get-Volume | Select-Object -Property * -ExcludeProperty CimClass, CimInstanceProperties, CimSystemProperties, PSComputerName
 }
 
 Function Get-OperatingSystem {
@@ -129,6 +143,20 @@ Function Get-BitLocker {
 
 Function Get-Logs {
     # Get System logs from software and filter based on useful ones
+}
+
+Function Get-RootCertificates {
+    Write-Log "Getting root certificates."
+    return Get-Certificates Cert:\LocalMachine\Root
+}
+
+Function Get-DirectAccessCertificates {
+    Write-Log "Getting direct access certificates."
+    return Get-Certificates Cert:\LocalMachine\My
+}
+
+Function Get-Certificates ($location) {
+    return Get-ChildItem $location | Select-Object -Property * -ExcludeProperty PSDrive, PSProvider, PSChildName, PSPath, PSParentPath
 }
 
 Function ConvertTo-DateTime([string]$dateString) {
@@ -165,12 +193,12 @@ Function Get-MSInfo32 {
 
 Function Get-WindowsCapabailities {
     Write-Log "Getting Windows capabilities."
-    return Get-WindowsCapability -Online | ConvertTo-EnumsAsStrings -Depth 4
+    return Get-WindowsCapability -Online  | ConvertTo-EnumsAsStrings -Depth 4
 }
 
 Function Get-FirewallRules {
     Write-Log "Getting firewall rules."
-    return Get-NetFirewallRule | Select-Object -Property * -ExcludeProperty CimClass, CimInstanceProperties, CimSystemProperties | ConvertTo-EnumsAsStrings
+    return Get-NetFirewallRule | Select-Object -Property * -ExcludeProperty CimClass, CimInstanceProperties, CimSystemProperties, PSComputerName | ConvertTo-EnumsAsStrings
 }
 
 Function Get-FirewallProfiles {
