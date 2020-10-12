@@ -10,6 +10,9 @@ $information = [PSCustomObject]@{
     WindowsCapabilities = Get-WindowsCapabailities;
     HotFixes            = Get-WmiObject -Class Win32_QuickFixEngineering;
     RootCertificates    = Get-ChildItem Cert:\LocalMachine\Root;
+    Power               = @{
+        Scheme = Get-PowerConfig;
+    };
     Firewall            = @{
         Rules    = Get-FirewallRules;
         Profiles = Get-FirewallProfiles;
@@ -54,7 +57,7 @@ $json = $information | ConvertTo-Json -Depth 4 -Compress
 $json | Set-Content $jsonFileName
 
 Write-Log "Creating report folder."
-if(Test-Path $reportFolderLocation){
+if (Test-Path $reportFolderLocation) {
     Write-Log "A report at $reportFolderLocation already exists. Deleting this report."
     Remove-Item $reportFolderLocation -Force
 }
