@@ -188,7 +188,15 @@ Function Get-Logs {
         }
     )
 
-    return Get-WinEvent -FilterHashtable $events
+    $end = Get-Date
+    $start = (Get-Date).AddMonths(-6)
+
+    foreach($event in $events){
+        $event.StartTime = $start
+        $event.EndTime = $end
+    }
+
+    return Get-WinEvent -FilterHashtable $events 
 }
 
 Function Get-RootCertificates {
