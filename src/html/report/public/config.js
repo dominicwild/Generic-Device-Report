@@ -105,7 +105,7 @@ for (const group of powerSchemeSubGroups) {
   for (const setting of group.Settings) {
     let ACValue = setting.ACValue;
     let DCValue = setting.DCValue;
-    
+
     if (!isNaN(parseInt(setting.ACValue))) {
       ACValue = +setting.ACValue;
     }
@@ -378,6 +378,11 @@ window.config = {
     {
       title: "Event Logs",
       data: window.data.Logs,
+      options: {
+        columnDefs: [
+          { width: '100px', targets: [3] }
+        ],
+      },
       columns: [
         {
           Name: "ID",
@@ -390,6 +395,13 @@ window.config = {
         {
           Name: "Provider",
           Value: "ProviderName",
+        },
+        {
+          Name: "Date",
+          Value: "TimeCreated",
+          function: (value) => {
+            return parseMSDate(value);
+          },
         },
         {
           Name: "Description",

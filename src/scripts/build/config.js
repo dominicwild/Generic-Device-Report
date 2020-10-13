@@ -376,14 +376,30 @@ window.config = {
     },
 
     {
+      title: "Event Logs",
+      data: window.data.Logs,
+      columns: [
+        {
+          Name: "ID",
+          Value: "Id",
+        },
+        {
+          Name: "Level",
+          Value: "LevelDisplayName",
+        },
+        {
+          Name: "Provider",
+          Value: "ProviderName",
+        },
+        {
+          Name: "Description",
+          Value: "Message",
+        },
+      ],
+    },
+
+    {
       title: "Power Settings",
-      // GroupName: group.Name,
-      // GroupAlias: group.Alias,
-      // ACValue: setting.ACValue,
-      // DCValue: setting.DCValue,
-      // SettingName: setting.Name,
-      // SettingUnit: setting.Unit,
-      // SettingAlias: setting.Alias
       data: powerSettings,
       columns: [
         {
