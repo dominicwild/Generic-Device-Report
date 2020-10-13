@@ -98,6 +98,36 @@ if (CsModel === "Virtual Machine") {
 //             return value;
 //           },
 
+const powerSchemeSubGroups = window.data.Power.Scheme.SubGroups;
+const powerSettings = [];
+
+for (const group of powerSchemeSubGroups) {
+  for (const setting of group.Settings) {
+    let ACValue = setting.ACValue;
+    let DCValue = setting.DCValue;
+    
+    if (!isNaN(parseInt(setting.ACValue))) {
+      ACValue = +setting.ACValue;
+    }
+
+    if (!isNaN(parseInt(setting.DCValue))) {
+      DCValue = +setting.DCValue;
+    }
+
+    powerSettings.push({
+      GroupName: group.Name,
+      GroupAlias: group.Alias,
+      ACValue,
+      DCValue,
+      SettingName: setting.Name,
+      SettingUnit: setting.Unit,
+      SettingAlias: setting.Alias,
+    });
+  }
+}
+
+console.log(powerSettings);
+
 window.config = {
   Overview: [
     {
@@ -344,6 +374,49 @@ window.config = {
         },
       ],
     },
+
+    {
+      title: "Power Settings",
+      // GroupName: group.Name,
+      // GroupAlias: group.Alias,
+      // ACValue: setting.ACValue,
+      // DCValue: setting.DCValue,
+      // SettingName: setting.Name,
+      // SettingUnit: setting.Unit,
+      // SettingAlias: setting.Alias
+      data: powerSettings,
+      columns: [
+        {
+          Name: "Name",
+          Value: "SettingName",
+        },
+        {
+          Name: "AC Value",
+          Value: "ACValue",
+        },
+        {
+          Name: "DC Value",
+          Value: "DCValue",
+        },
+        {
+          Name: "Unit",
+          Value: "SettingUnit",
+        },
+        {
+          Name: "Setting Alias",
+          Value: "SettingAlias",
+        },
+        {
+          Name: "Group Name",
+          Value: "GroupName",
+        },
+        {
+          Name: "Group Alias",
+          Value: "GroupAlias",
+        },
+      ],
+    },
+
     {
       title: "Hot Fixes",
       data: window.data.HotFixes,

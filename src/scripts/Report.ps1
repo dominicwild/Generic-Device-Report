@@ -8,8 +8,8 @@ $buildFolder = "$PSScriptRoot\build"
 $information = [PSCustomObject]@{
     AntiVirus           = Get-Antivirus;
     WindowsCapabilities = Get-WindowsCapabailities;
-    HotFixes            = Get-WmiObject -Class Win32_QuickFixEngineering;
-    RootCertificates    = Get-ChildItem Cert:\LocalMachine\Root;
+    HotFixes            = Get-WMIInfo Win32_QuickFixEngineering;
+    RootCertificates    = Get-RootCertificates;
     Power               = @{
         Scheme = Get-PowerConfig;
     };
@@ -50,16 +50,17 @@ $information = [PSCustomObject]@{
     Processes           = Get-Process;
     Startup             = Get-WMIInfo Win32_StartupCommand;
     MSInfo32            = Get-MSInfo32;
+    Logs                = Get-Logs;
 }
 
 Write-Log "Creating json file."
-$json = $information | ConvertTo-Json -Depth 4 -Compress
+$json = $information | ConvertTo-Json -Depth 6 -Compress
 $json | Set-Content $jsonFileName
 
 Write-Log "Creating report folder."
 if (Test-Path $reportFolderLocation) {
     Write-Log "A report at $reportFolderLocation already exists. Deleting this report."
-    Remove-Item $reportFolderLocation -Force
+    Remove-Item $reportFolderLocation -Force -Recurse
 }
 
 Write-Log "Creating the report build."
@@ -68,4 +69,4 @@ Set-Content "$reportFolderLocation\data.js" "window.data = $json;"
 
 Write-Log "Created report file at $reportFolderLocation\index.html"
 
-Invoke-Item "$reportFolderLocation\index.html"
+# Invoke-Item -LiteralPath "$reportFolderLocation\index.html"

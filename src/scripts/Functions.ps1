@@ -62,7 +62,7 @@ Function Get-InstalledSoftware {
 Function Get-AppXSoftware {
     Write-Log "Searching AppX packages."
     try {
-        return Get-AppxPackage -AllUsers | Select-Object -Property * -ExcludeProperty PackageUserInformation | ConvertTo-EnumsAsStrings -Depth 4 
+        return Get-AppxPackage -AllUsers | ConvertTo-EnumsAsStrings -Depth 4 
     } catch {
         Write-Log "Unable to get AppX packages."
         Write-Log $_
@@ -142,7 +142,53 @@ Function Get-BitLocker {
 }
 
 Function Get-Logs {
-    # Get System logs from software and filter based on useful ones
+    Write-Log "Getting event logs."
+    $events = @(
+        @{ # Application Fault
+            LogName      = "Application";
+            ProviderName = "Application Error";
+            ID           = 1000;
+        }, 
+        @{ # Service Failed to Restart
+            LogName      = "System";
+            ProviderName = "Service Control Manager";
+            ID           = 7000;
+        }, 
+        @{ # Application Hang
+            LogName      = "Application";
+            ProviderName = "Application Hang";
+            ID           = 1002;
+        }, 
+        @{ # Service Timeout
+            LogName      = "System";
+            ProviderName = "Service Control Manager";
+            ID           = 7009;
+        },
+        @{ # Windows Update Failure
+            LogName      = "System";
+            ProviderName = "Microsoft-Windows-WindowsUpdateClient";
+            ID           = 20;
+        },
+        @{ # Scheduled Task Delayed or Failed
+            LogName = "Microsoft-Windows-TaskScheduler/Operational";
+            ID      = 201;
+        },
+        @{ # Unexpected Reboot
+            LogName      = "System";
+            ProviderName = "Microsoft-Windows-Kernel-Power";
+            ID           = 41;
+        },
+        @{ # System Logs Critical
+            LogName = "System";
+            Level   = 1;
+        },
+        @{ # Application Logs Critical
+            LogName = "Application";
+            Level   = 1;
+        }
+    )
+
+    return Get-WinEvent -FilterHashtable $events
 }
 
 Function Get-RootCertificates {
@@ -234,6 +280,7 @@ Filter ConvertTo-EnumsAsStrings ([int] $Depth = 2, [int] $CurrDepth = 0) {
 }
 
 Function Get-PowerConfig { 
+    Write-Log "Getting power settings."
     $powerSettingsString = powercfg /q
 
     Enum States {

@@ -133,5 +133,90 @@ Function Get-PowerConfig {
     return $scheme
 }
 
-$a = Get-PowerConfig | Convertto-Json -Depth 4
-$a | Set-Content "C:\Users\dwild8\Documents\VsCode\Generic Device Report\test.json"
+# $a = Get-PowerConfig | Convertto-Json -Depth 4
+# $a | Set-Content "C:\Users\dwild8\Documents\VsCode\Generic Device Report\test.json"
+
+
+# LogName=<String[]>
+# ProviderName=<String[]>
+# Path=<String[]>
+# Keywords=<Long[]>
+# ID=<Int32[]>
+# Level=<Int32[]>
+# StartTime=<DateTime>
+# EndTime=<DateTime>
+# UserID=<SID>
+# Data=<String[]>
+# <named-data>=<String[]>
+# SuppressHashFilter=<Hashtable>
+
+$unexpectedReboot = @{
+    LogName  = "System";
+    Provider = "Microsoft-Windows-Kernel-Power";
+    ID       = 41;
+}
+
+$applicationHang = @{
+    LogName  = "Application";
+    Provider = "Application Hang";
+    ID       = 1002;
+}
+
+$serviceFailedToStart = @{
+    LogName  = "System";
+    Provider = "Service Control Manager";
+    ID       = 7000;
+}
+
+$applicationFault = @{
+    LogName  = "Application";
+    Provider = "Application Error";
+    ID       = 1000;
+}
+
+$events = @(
+    @{ # Application Fault
+        LogName      = "Application";
+        ProviderName = "Application Error";
+        ID           = 1000;
+    }, 
+    @{ # Service Failed to Restart
+        LogName      = "System";
+        ProviderName = "Service Control Manager";
+        ID           = 7000;
+    }, 
+    @{ # Application Hang
+        LogName      = "Application";
+        ProviderName = "Application Hang";
+        ID           = 1002;
+    }, 
+    @{ # Service Timeout
+        LogName      = "System";
+        ProviderName = "Service Control Manager";
+        ID           = 7009;
+    },
+    @{ # Windows Update Failure
+        LogName      = "System";
+        ProviderName = "Microsoft-Windows-WindowsUpdateClient";
+        ID           = 20;
+    },
+    @{ # Scheduled Task Delayed or Failed
+        LogName = "Microsoft-Windows-TaskScheduler/Operational";
+        ID      = 201;
+    },
+    @{ # Unexpected Reboot
+        LogName      = "System";
+        ProviderName = "Microsoft-Windows-Kernel-Power";
+        ID           = 41;
+    },
+    @{ # System Logs Critical
+        LogName = "System";
+        Level   = 1;
+    },
+    @{ # Application Logs Critical
+        LogName = "Application";
+        Level   = 1;
+    }
+)
+
+Get-WinEvent -FilterHashtable $events
