@@ -1,8 +1,9 @@
 .overview-panel {
 
-    display:inline-block;
+    display: table;
     // width: 100px;
     $cellPadding: 5px 10px;
+    margin-bottom: 15px;
 
     .title {
         background-color: #085985;//#2A2A72; //#096192

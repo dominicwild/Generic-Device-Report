@@ -51,6 +51,7 @@ $information = [PSCustomObject]@{
     Startup             = Get-WMIInfo Win32_StartupCommand;
     MSInfo32            = Get-MSInfo32;
     Logs                = Get-Logs;
+    BitLocker           = Get-BitLocker;
 }
 
 Write-Log "Creating json file."

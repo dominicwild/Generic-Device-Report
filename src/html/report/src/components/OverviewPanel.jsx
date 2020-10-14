@@ -13,6 +13,9 @@ class OverviewPanel extends Component {
           <table>
             <tbody>
               {panel.data.map(({ Name, Value }) => {
+                if (Value === null) {
+                  Value = "Unknown";
+                }
                 return (
                   <tr key={`${Name}${Value}`} className="row">
                     <td className="key">{Name}</td>

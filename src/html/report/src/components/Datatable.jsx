@@ -6,8 +6,22 @@ import "../css/Datatable.css";
 import "moment";
 import "datetime-moment";
 import Carat from "../SVG/Carat";
+import jsZip from "jszip";
+import "datatables.net-buttons/js/buttons.colVis.min";
+import "datatables.net-buttons/js/dataTables.buttons.min";
+import "datatables.net-buttons/js/buttons.flash.min";
+import "datatables.net-buttons/js/buttons.html5.min";
+
+import pdfMake from "pdfmake/build/pdfmake";
+import pdfFonts from "pdfmake/build/vfs_fonts";
+pdfMake.vfs = pdfFonts.pdfMake.vfs;
+
+window.JSZip = jsZip;
 
 $.DataTable = require("datatables.net");
+
+require("datatables.net-keytable-dt");
+require("datatables.net-searchpanes-dt");
 
 class Datatable extends Component {
   constructor(props) {
@@ -21,15 +35,33 @@ class Datatable extends Component {
 
     let options = {
       paging,
-      dom: '<"top"if>rt<"bottom"lp><"clear">',
+      dom: '<"top"iBf>rt<"bottom"lp><"clear">',
     };
 
     if (config) {
       options = { ...options, ...config };
     }
+    const title = `Device Report - ${id}`
 
     $(`#${id}`).DataTable({
       ...options,
+      buttons: [
+        "copyHtml5",
+        {
+          extend: "pdfHtml5",
+          orientation: "landscape",
+          pageSize: "LEGAL",
+          title
+        },
+        {
+          extend: "excelHtml5",
+          title
+        },
+        {
+          extend: "csvHtml5",
+          title
+        },
+      ],
     });
 
     if (config?.dateFormat) {
@@ -86,7 +118,7 @@ class Datatable extends Component {
 
   render() {
     const { data, columns, id, title, config } = this.props;
-    console.log(data);
+    // console.log(data);
     // console.log(columns);
 
     return (

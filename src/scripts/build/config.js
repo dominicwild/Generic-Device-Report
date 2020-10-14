@@ -27,6 +27,21 @@ const {
   CsStatus,
 } = window.data.MSInfo32;
 
+const bitLocker = window.data.BitLocker
+let bitLockerKeyProtection = []
+for(const key of bitLocker.KeyProtector){
+  bitLockerKeyProtection.push(key.KeyProtectorType)
+}
+if(bitLockerKeyProtection.length >= 1){
+  bitLockerKeyProtection = bitLockerKeyProtection.join(", ")
+} else {
+  bitLockerKeyProtection = "None"
+}
+
+const antivirus = window.data.AntiVirus
+
+const directAccessSettings = window.data.DirectAccess.Setting
+
 const { TotalVisibleMemorySize } = window.data.Computer.OperatingSystem;
 
 const activationStatus = window.data.Computer.ActivationStatus;
@@ -89,14 +104,6 @@ if (CsModel === "Virtual Machine") {
 } else {
   ram = `${CsPhyicallyInstalledMemory / 1024 ** 2}GB`;
 }
-// Name: "Total RAM",
-//           Value: `${(CsPhyicallyInstalledMemory / 1024 ** 2)}GB`,
-//           function: value => {
-//             if(CsModel === "Virtual Machine"){
-//               return `${(TotalVisibleMemorySize / 1024 ** 2)}GB`
-//             }
-//             return value;
-//           },
 
 const powerSchemeSubGroups = window.data.Power.Scheme.SubGroups;
 const powerSettings = [];
@@ -105,7 +112,7 @@ for (const group of powerSchemeSubGroups) {
   for (const setting of group.Settings) {
     let ACValue = setting.ACValue;
     let DCValue = setting.DCValue;
-    
+
     if (!isNaN(parseInt(setting.ACValue))) {
       ACValue = +setting.ACValue;
     }
@@ -270,6 +277,154 @@ window.config = {
         },
       ],
     },
+
+    {
+      title: "BitLocker",
+      data: [
+        {
+          Name: "Volume",
+          Value: bitLocker.MountPoint,
+        },
+        {
+          Name: "Encryption Method",
+          Value: bitLocker.EncryptionMethod,
+        },
+        {
+          Name: "Auto Unlock Key Stored",
+          Value: bitLocker.AutoUnlockedKeyStored,
+        },
+        {
+          Name: "Status",
+          Value: bitLocker.VolumeStatus,
+        },
+        {
+          Name: "Protection Status",
+          Value: bitLocker.ProtectionStatus,
+        },
+        {
+          Name: "Lock Status",
+          Value: bitLocker.LockStatus,
+        },
+        {
+          Name: "Encryption %",
+          Value: bitLocker.EncryptionPercentage,
+        },
+        {
+          Name: "Volume Type",
+          Value: bitLocker.VolumeType,
+        },
+        {
+          Name: "Capacity",
+          Value: `${+bitLocker.CapacityGB.toFixed(2)}GB`,
+        },
+        {
+          Name: "Key Protector",
+          Value: bitLockerKeyProtection,
+        },
+      ],
+    },
+
+    {
+      title: "Direct Access Settings",
+      data: [
+        {
+          Name: "Description",
+          Value: directAccessSettings.Description,
+        },
+        {
+          Name: "Instance ID",
+          Value: directAccessSettings.InstanceID,
+        },
+        {
+          Name: "Manual Entry Point Selection Allowed",
+          Value: directAccessSettings.ManualEntryPointSelectionAllowed,
+        },
+        {
+          Name: "Passive Mode",
+          Value: directAccessSettings.PassiveMode,
+        },
+        {
+          Name: "Protection Status",
+          Value: directAccessSettings.ProtectionStatus,
+        },
+        {
+          Name: "Policy Store",
+          Value: directAccessSettings.PolicyStore,
+        },
+        {
+          Name: "Prefer Local Names Allowed",
+          Value: directAccessSettings.PreferLocalNamesAllowed,
+        },
+        {
+          Name: "User Interface",
+          Value: directAccessSettings.UserInterface,
+        },
+      ],
+    },
+
+    {
+      title: "Antivirus",
+      data: [
+        {
+          Name: "Version",
+          Value: antivirus.AMProductVersion,
+        },
+        {
+          Name: "Status",
+          Value: antivirus.AMRunningMode,
+        },
+        {
+          Name: "Service Enabled",
+          Value: antivirus.AMServiceEnabled,
+        },
+        {
+          Name: "Antispyware Enabled",
+          Value: antivirus.AntispywareEnabled,
+        },
+        {
+          Name: "Antispyware Last Updated",
+          Value: parseMSDate(antivirus.AntispywareSignatureLastUpdated),
+        },
+        {
+          Name: "Antivirus Enabled",
+          Value: antivirus.AntivirusEnabled,
+        },
+        {
+          Name: "Antivirus Last Updated",
+          Value: parseMSDate(antivirus.AntivirusSignatureLastUpdated),
+        },
+        {
+          Name: "Behaviour Monitor Enabled",
+          Value: antivirus.BehaviorMonitorEnabled,
+        },
+        {
+          Name: "Real Time Protection Enabled",
+          Value: antivirus.RealTimeProtectionEnabled,
+        },
+        {
+          Name: "On Access Protection Enabled",
+          Value: antivirus.OnAccessProtectionEnabled,
+        },
+        {
+          Name: "NIS Enabled",
+          Value: antivirus.NISEnabled,
+        },
+        {
+          Name: "NIS Last Updated",
+          Value: parseMSDate(antivirus.NISSignatureLastUpdated),
+        },
+        {
+          Name: "Last Quick Scan",
+          Value: parseMSDate(antivirus.QuickScanEndTime),
+        },
+        {
+          Name: "Is Virtual Machine",
+          Value: antivirus.IsVirtualMachine,
+        },
+      ],
+    },
+
+
   ],
 
   Tables: [
@@ -378,6 +533,11 @@ window.config = {
     {
       title: "Event Logs",
       data: window.data.Logs,
+      options: {
+        columnDefs: [
+          { width: '100px', targets: [3] }
+        ],
+      },
       columns: [
         {
           Name: "ID",
@@ -390,6 +550,13 @@ window.config = {
         {
           Name: "Provider",
           Value: "ProviderName",
+        },
+        {
+          Name: "Date",
+          Value: "TimeCreated",
+          function: (value) => {
+            return parseMSDate(value);
+          },
         },
         {
           Name: "Description",

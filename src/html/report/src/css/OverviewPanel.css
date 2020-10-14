@@ -1,5 +1,6 @@
 .overview-panel {
-  display: inline-block;
+  display: table;
+  margin-bottom: 15px;
 }
 
 .overview-panel .title {

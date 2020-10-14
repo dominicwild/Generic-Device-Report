@@ -5,6 +5,11 @@
   border: solid black 1px;
 }
 
+.datatable-container .dt-buttons {
+  display: inline-block;
+  margin-left: 21px;
+}
+
 .datatable-container.hidden {
   border-radius: 1rem;
   border: solid rgba(0, 0, 0, 0) 1px;

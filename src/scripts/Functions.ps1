@@ -137,8 +137,9 @@ Function Get-RegValues ($location) {
 }
 
 Function Get-BitLocker {
-    # Needs parsing
-    (manage-bde.exe -status)
+    Write-Log "Getting BitLocker information."
+    $bitlocker = Get-BitLockerVolume
+    return $bitlocker | ConvertTo-EnumsAsStrings -Depth 4
 }
 
 Function Get-Logs {

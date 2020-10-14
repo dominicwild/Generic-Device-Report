@@ -7,6 +7,11 @@
   margin: 10px;
   border: solid black 1px;
 
+  .dt-buttons {
+    display: inline-block;
+    margin-left: 21px;
+  }
+
   &.hidden {
     // border: none;
     border-radius: $corner-radius;
