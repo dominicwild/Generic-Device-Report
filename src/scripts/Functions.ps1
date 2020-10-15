@@ -192,7 +192,7 @@ Function Get-Logs {
     $end = Get-Date
     $start = (Get-Date).AddMonths(-6)
 
-    foreach($event in $events){
+    foreach ($event in $events) {
         $event.StartTime = $start
         $event.EndTime = $end
     }
@@ -422,4 +422,48 @@ Function Get-PowerConfig {
     }
 
     return $scheme
+}
+
+Function New-Zip ($folder) {
+    Write-Log "Compressing '$folder' into '$folder.zip'"
+    $compress = @{
+        Path        = $folder;
+        Destination = "$folder.zip";
+    }
+
+    Compress-Archive @compress -Force
+    if(Test-Path "$folder.zip"){
+        Write-Log "Successfully created $folder.zip."
+    }
+}
+
+Function Send-Email ($Recipients, $Subject, $Body, $reportFolder) {
+    Write-Log "Preparing to email device report."
+    Write-Log "Connecting to Outlook."
+    $Outlook = New-Object -ComObject Outlook.Application
+    Write-Log "Creating email."
+    $Mail = $Outlook.CreateItem(0)
+
+    Write-Log "Adding attachments."
+    # https://docs.microsoft.com/en-gb/office/vba/outlook/how-to/items-folders-and-stores/attach-a-file-to-a-mail-item
+    New-Zip $reportFolder
+    $attachments = $Mail.Attachments
+    $attachments.Add("$reportFolder.zip")
+
+    Write-Log "Adding recipients."
+    foreach($recipient in $Recipients){
+        $Mail.Recipients.Add($recipient)
+    }
+
+    Write-Log "Creating email contents."
+    $Mail.Subject = $Subject
+    $Mail.Body = $Body
+
+    Write-Log "Sending email to Outlook to deliver."
+    $Mail.Send()
+
+    Write-Log "Exiting Outlook and cleaning resources."
+    $Outlook.Quit()
+    [System.Runtime.Interopservices.Marshal]::ReleaseComObject($Outlook) | Out-Null
+    Write-Log "Outlook resources cleared."
 }

@@ -1,9 +1,16 @@
 . "$PSScriptRoot\Functions.ps1"
 
-$jsonFileName = "$env:COMPUTERNAME.json"
-$reportFolderName = "$env:COMPUTERNAME"
-$reportFolderLocation = "$PSScriptRoot\$reportFolderName"
-$buildFolder = "$PSScriptRoot\build"
+# Email Settings
+$sendEmail = $false
+$title = "Device Report"
+$body = "Device report from machine $env:COMPUTERNAME"
+$recipients = @("dwild8@dxc.com")
+
+# General configuration
+$jsonFileName = "$env:COMPUTERNAME.json" # Name of the output JSON file containing all the data for the report
+$reportFolderName = "$env:COMPUTERNAME" # Name of the report folder generate, that has the report index.html within it.
+$reportFolderLocation = "$PSScriptRoot\$reportFolderName" # Where to place the report folder.
+$buildFolder = "$PSScriptRoot\build" # The folder containing the template HTML Report to input data into
 
 $information = [PSCustomObject]@{
     AntiVirus           = Get-Antivirus;
@@ -70,4 +77,12 @@ Set-Content "$reportFolderLocation\data.js" "window.data = $json;"
 
 Write-Log "Created report file at $reportFolderLocation\index.html"
 
+if($sendEmail -and (Test-Path $reportFolderLocation)){
+    Send-Email -Recipients $recipients -Title $title -Body $body -Report $reportFolderLocation
+}
+
 # Invoke-Item -LiteralPath "$reportFolderLocation\index.html"
+
+
+
+
