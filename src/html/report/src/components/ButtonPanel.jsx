@@ -1,8 +1,8 @@
 import React, { Component } from "react";
 import "../css/Button.css";
-import "../css/ExpandPanel.css";
+import "../css/ButtonPanel.css";
 
-class ExpandPanel extends Component {
+class ButtonPanel extends Component {
   expandAll = () => {
     document.querySelectorAll(".hidden").forEach((element) => {
       element.click();
@@ -20,6 +20,9 @@ class ExpandPanel extends Component {
   render() {
     return (
       <div className="expand-panel">
+        <a className="button gpo-btn" href="gpo.html" target="_blank">
+          GPO Report
+        </a>
         <a className="button expand-btn" onClick={this.expandAll}>
           Expand All
         </a>
@@ -31,4 +34,4 @@ class ExpandPanel extends Component {
   }
 }
 
-export default ExpandPanel;
+export default ButtonPanel;

@@ -1,5 +1,26 @@
 .expand-panel {
   overflow: auto;
+  margin: 0 10px;
+
+  a.gpo-btn.button {
+    $btnColor: #fa9521;
+    float: left;
+
+    background-color: $btnColor;
+
+    &:hover,
+    &:active {
+      background-color: scale-color($btnColor, $lightness: -20%);
+    }
+
+    &:focus {
+      box-shadow: 0 0 0 0 scale-color($btnColor, $lightness: -40%);
+    }
+  }
+
+  .expand-btn {
+    margin-right: 0px !important;
+  }
 
   .button {
     float: right;

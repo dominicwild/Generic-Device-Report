@@ -59,6 +59,7 @@ $information = [PSCustomObject]@{
     MSInfo32            = Get-MSInfo32;
     Logs                = Get-Logs;
     BitLocker           = Get-BitLocker;
+    GPO                 = Get-GPO;
 }
 
 Write-Log "Creating json file."
@@ -75,9 +76,10 @@ Write-Log "Creating the report build."
 Copy-Item $buildFolder $reportFolderLocation -Recurse -Force
 Set-Content "$reportFolderLocation\data.js" "window.data = $json;"
 
+gpresult /f /h "$reportFolderLocation\gpo.html"
 Write-Log "Created report file at $reportFolderLocation\index.html"
 
-if($sendEmail -and (Test-Path $reportFolderLocation)){
+if ($sendEmail -and (Test-Path $reportFolderLocation)) {
     Send-Email -Recipients $recipients -Title $title -Body $body -Report $reportFolderLocation
 }
 

@@ -27,20 +27,22 @@ const {
   CsStatus,
 } = window.data.MSInfo32;
 
-const bitLocker = window.data.BitLocker
-let bitLockerKeyProtection = []
-for(const key of bitLocker.KeyProtector){
-  bitLockerKeyProtection.push(key.KeyProtectorType)
+const GPO = window.data.GPO;
+
+const bitLocker = window.data.BitLocker;
+let bitLockerKeyProtection = [];
+for (const key of bitLocker.KeyProtector) {
+  bitLockerKeyProtection.push(key.KeyProtectorType);
 }
-if(bitLockerKeyProtection.length >= 1){
-  bitLockerKeyProtection = bitLockerKeyProtection.join(", ")
+if (bitLockerKeyProtection.length >= 1) {
+  bitLockerKeyProtection = bitLockerKeyProtection.join(", ");
 } else {
-  bitLockerKeyProtection = "None"
+  bitLockerKeyProtection = "None";
 }
 
-const antivirus = window.data.AntiVirus
+const antivirus = window.data.AntiVirus;
 
-const directAccessSettings = window.data.DirectAccess.Setting
+const directAccessSettings = window.data.DirectAccess.Setting;
 
 const { TotalVisibleMemorySize } = window.data.Computer.OperatingSystem;
 
@@ -424,7 +426,35 @@ window.config = {
       ],
     },
 
-
+    {
+      title: "GPO",
+      data: [
+        {
+          Name: "Name",
+          Value: GPO.Name,
+        },
+        {
+          Name: "Domain",
+          Value: GPO.Domain,
+        },
+        {
+          Name: "Site",
+          Value: GPO.Site,
+        },
+        {
+          Name: "Version",
+          Value: GPO.Version,
+        },
+        {
+          Name: "Scope of Management (OU)",
+          Value: GPO.SOM,
+        },
+        {
+          Name: "Slow Link",
+          Value: GPO.SlowLink,
+        },
+      ],
+    },
   ],
 
   Tables: [
@@ -471,6 +501,98 @@ window.config = {
     },
 
     {
+      title: "Group Policies (GPO)",
+      data: window.data.GPO.GPO,
+      columns: [
+        {
+          Name: "Name",
+          Value: "Name",
+        },
+        {
+          Name: "Enabled",
+          Value: "Enabled",
+        },
+        {
+          Name: "Path",
+          Value: "Link",
+          function: (value) => {
+            return value.SOMPath;
+          },
+        },
+        {
+          Name: "Security Filter",
+          Value: "SecurityFilter",
+        },
+        {
+          Name: "Valid",
+          Value: "IsValid",
+        },
+        {
+          Name: "Version Directory",
+          Value: "VersionDirectory",
+        },
+        {
+          Name: "Version Sysvol",
+          Value: "VersionSysvol",
+        },
+        {
+          Name: "Access Denied",
+          Value: "AccessDenied",
+        },
+        {
+          Name: "Filter Allowed",
+          Value: "FilterAllowed",
+        },
+      ],
+    },
+
+    {
+      title: "Security Groups",
+      data: window.data.GPO.SecurityGroup,
+      columns: [
+        {
+          Name: "Name",
+          Value: "Name",
+        },
+        {
+          Name: "SID",
+          Value: "SID",
+        },
+      ],
+    },
+
+    {
+      title: "Scope of Management",
+      data: window.data.GPO.SearchedSOM,
+      columns: [
+        {
+          Name: "Order",
+          Value: "Order",
+        },
+        {
+          Name: "Path",
+          Value: "Path",
+        },
+        {
+          Name: "Type",
+          Value: "Type",
+        },
+        {
+          Name: "Blocks Inheritance",
+          Value: "BlocksInheritance",
+        },
+        {
+          Name: "Blocked",
+          Value: "Blocked",
+        },
+        {
+          Name: "Reason",
+          Value: "Reason",
+        },
+      ],
+    },
+
+    {
       title: "Storage",
       data: window.data.Storage,
       columns: [
@@ -480,7 +602,7 @@ window.config = {
         },
         {
           Name: "Driver Letter",
-          Value: "DriverLetter",
+          Value: "DriveLetter",
         },
         {
           Name: "Type",
@@ -534,9 +656,7 @@ window.config = {
       title: "Event Logs",
       data: window.data.Logs,
       options: {
-        columnDefs: [
-          { width: '100px', targets: [3] }
-        ],
+        columnDefs: [{ width: "100px", targets: [3] }],
       },
       columns: [
         {
