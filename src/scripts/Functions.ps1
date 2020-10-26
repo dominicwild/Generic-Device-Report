@@ -15,12 +15,12 @@ Function Get-InstalledSoftware {
     $uninstallRegLocation2 = "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall";
 
     Write-Log "Searching registry '$uninstallRegLocation1' for software."
-    $regSoftware += Get-ChildItem "$uninstallRegLocation1\*" | % { Get-ItemProperty $_.Name.Replace("HKEY_LOCAL_MACHINE", "HKLM:") }
+    $regSoftware += Get-ChildItem "$uninstallRegLocation1\*" | % { Get-ItemProperty $_.Name.Replace("HKEY_LOCAL_MACHINE", "HKLM:") -ErrorAction SilentlyContinue }
     $count = $regSoftware.Count
     Write-Log "Found $count pieces of software."
 
     Write-Log "Searching registry '$uninstallRegLocation2' for software."
-    $regSoftware += Get-ChildItem "$uninstallRegLocation2\*" | % { Get-ItemProperty $_.Name.Replace("HKEY_LOCAL_MACHINE", "HKLM:") }
+    $regSoftware += Get-ChildItem "$uninstallRegLocation2\*" | % { Get-ItemProperty $_.Name.Replace("HKEY_LOCAL_MACHINE", "HKLM:") -ErrorAction SilentlyContinue }
     $count = $regSoftware.Count - $count
     Write-Log "Found $count pieces of software."
 
@@ -133,7 +133,15 @@ Function Get-OperatingSystem {
 
 Function Get-RegValues ($location) {
     Write-Log "Getting registry values from '$location'."
-    return Get-ChildItem $location -Recurse | Get-ItemProperty | Select-Object -Property * -Exclude PSProvider
+    $keys = Get-ChildItem $location -Recurse | Get-ItemProperty | Select-Object -Property * -Exclude PSProvider
+    $keys += Get-Item $location | Get-ItemProperty | Select-Object -Property * -Exclude PSProvider
+    
+    foreach($key in $keys){
+        $key.PsPath = $key.PsPath.Replace("Microsoft.PowerShell.Core\Registry::", "")
+        $key.PSParentPath = $key.PSParentPath.Replace("Microsoft.PowerShell.Core\Registry::", "")
+    }
+
+    return $keys
 }
 
 Function Get-BitLocker {
@@ -474,13 +482,13 @@ Function Get-GPO {
     $fileName = "$env:COMPUTERNAME.xml"
     $fileLocation = "$folder/$fileName"
     
-    # gpresult /x /f $fileLocation
+    gpresult /x /f $fileLocation
     
     [XML]$xml = (Get-Content $fileLocation)
     $rsop = $xml.Rsop
     $hash = (ConvertTo-HashFromXML -Node $rsop.ComputerResults).Value
 
-    # Remove-Item $fileLocation -Force 
+    Remove-Item $fileLocation -Force 
     return $hash
 }
 
@@ -513,4 +521,50 @@ Function ConvertTo-HashFromXML($node) {
         }
     }
     
+}
+Function Get-Ivanti {
+    Write-Log "Getting Ivanti information."
+
+    $ivantiServiceName = "Ivanti Device and Application Control Command and Control"
+    $ivantiProcessName = "RTNotify"
+
+    $ivantiService = Get-Service | ? { $_.DisplayName -eq $ivantiServiceName } 
+
+    $sxPublicKeyExists = Test-Path "C:\Windows\sxdata\sx-public.key" 
+
+    $ivantiProcess = Get-Process | ? { $_.ProcessName -eq $ivantiProcessName } 
+
+    $ivantiServers = Get-ItemPropertyValue "HKLM:\SYSTEM\CurrentControlSet\Services\scomc\Parameters" -Name "Servers" 
+    $ivantiServers = if ($ivantiServers) { $ivantiServers.split(" ") } 
+    $serverPings = @() 
+
+    foreach ($server in $ivantiServers) { 
+        $serverPings += @{ 
+            Server = $server; 
+            Ping   = Test-Connection ($server -replace ":.*", "") -Quiet; 
+        } 
+    } 
+
+    $sxDataFiles = Get-ChildItem "C:\Windows\sxdata" 
+    $lastUpdatedTimeSpan = $null 
+    $potentialIssue = $false 
+
+    foreach ($file in $sxDataFiles) {
+        if ($file.Name -match ".cch$") {
+            $lastUpdatedTimeSpan = (Get-Date) - $file.LastWriteTime 
+            if ($lastUpdatedTimeSpan.Day -gt 14) { 
+                $potentialIssue = $true 
+            } 
+        }
+    }
+
+    $ivanti = @{
+        ServiceStatus             = $ivantiService.Status;
+        PublicKeyExists           = $sxPublicKeyExists;
+        ProcessRunning            = ($null -ne $ivantiProcess);
+        ServerPings               = $serverPings;
+        CCHPermissionsLastUpdated = $lastUpdatedTimeSpan;
+    }
+
+    return $ivanti
 }

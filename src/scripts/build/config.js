@@ -27,6 +27,17 @@ const {
   CsStatus,
 } = window.data.MSInfo32;
 
+const Ivanti = window.data.Ivanti;
+
+const ivantiServerPings = [];
+
+for (const serverPing of Ivanti.ServerPings) {
+  ivantiServerPings.push({
+    Name: `Can Ping ${serverPing.Server}`,
+    Value: serverPing.Ping,
+  });
+}
+
 const GPO = window.data.GPO;
 
 const bitLocker = window.data.BitLocker;
@@ -83,6 +94,7 @@ function parseADPublisher(adString) {
     }
   }
   if (types.OU) {
+    // Possible values in LDAP CN=Build.net, OU=Microsoft etc
     return types.OU;
   } else if (types.O) {
     return types.O;
@@ -134,8 +146,6 @@ for (const group of powerSchemeSubGroups) {
     });
   }
 }
-
-console.log(powerSettings);
 
 window.config = {
   Overview: [
@@ -455,6 +465,55 @@ window.config = {
         },
       ],
     },
+
+    {
+      title: "Ivanti",
+      data: [
+        {
+          Name: "Service Status",
+          Value: Ivanti.ServiceStatus != null ? Ivanti.ServiceStatus : "Service Not Detected",
+        },
+        {
+          Name: "Public Key Exists",
+          Value: Ivanti.PublicKeyExists,
+        },
+        {
+          Name: "Process Running",
+          Value: Ivanti.ProcessRunning,
+        },
+        {
+          Name: "CCH Permissions Last Updated",
+          Value: Ivanti.CCHPermissionsLastUpdated,
+          modify: (value) => {
+            let metric = "";
+            let amount = 0;
+            if (Math.round(value.TotalDays >= 1)) {
+              metric = "day"
+              amount  = Math.round(value.TotalDays)
+            }
+            else if (Math.round(value.TotalHours >= 1)) {
+              metric = "hour"
+              amount  = Math.round(value.TotalHours)
+            }
+            else if (Math.round(value.TotalMinutes >= 1)) {
+              metric = "minute"
+              amount  = Math.round(value.TotalMinutes)
+            }
+            else if (Math.round(value.TotalSeconds >= 1)) {
+              metric = "second"
+              amount  = Math.round(value.TotalSeconds)
+            }
+
+            if(amount > 1){
+              metric = metric + "s"
+            }
+
+            return `${amount} ${metric} ago`
+          },
+        },
+        ...ivantiServerPings,
+      ],
+    },
   ],
 
   Tables: [
@@ -638,6 +697,76 @@ window.config = {
     },
 
     {
+      title: "CSC Applications (Registry)",
+      data: window.data.Registry.CSC.Applications,
+      columns: [
+        {
+          Name: "Name",
+          Value: "PSChildName",
+        },
+        {
+          Name: "Installed",
+          Value: "Installed",
+        },
+        {
+          Name: "Account",
+          Value: "Account",
+        },
+        {
+          Name: "Deployment Method",
+          Value: "DeploymentMethod",
+        },
+        {
+          Name: "Start Time",
+          Value: "StartTime",
+        },
+        {
+          Name: "Finish Time",
+          Value: "FinishTime",
+        },
+        {
+          Name: "Install Time",
+          Value: "InstallTime",
+        },
+        {
+          Name: "Install Date",
+          Value: "InstallDate",
+        },
+        {
+          Name: "Exit Code",
+          Value: "ExitCode",
+        },
+        {
+          Name: "Exit Description",
+          Value: "ExitDescription",
+        },
+      ],
+    },
+
+    {
+      title: "CSC Packages (Registry)",
+      data: window.data.Registry.CSC.Packages,
+      columns: [
+        {
+          Name: "Name",
+          Value: "PSChildName",
+        },
+        {
+          Name: "Description",
+          Value: "(default)",
+        },
+        {
+          Name: "Installed",
+          Value: "Installed",
+        },
+        {
+          Name: "Install Date",
+          Value: "InstallDate",
+        },
+      ],
+    },
+
+    {
       title: "Windows Capabilities",
       data: window.data.WindowsCapabilities,
       columns: [
@@ -739,7 +868,7 @@ window.config = {
           Name: "Install Date",
           Value: "InstalledOn",
           function: (value) => {
-            const date = parseMSDate(value.value);
+            const date = parseMSDate(value?.value);
             return date;
           },
         },

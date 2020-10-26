@@ -4,18 +4,21 @@ import Datatable from "./Datatable";
 import ButtonPanel from "./ButtonPanel";
 import Overview from "./Overview";
 import ReportData from "./ReportData";
+import GlobalSearch from "./GlobalSearch";
+
 
 const config = window.config;
 
 class Report extends Component {
-  render() {
 
+  render() {
     return (
       <div className="report">
         <div className="header">System Report</div>
         <div className="body">
           <Overview data={config.Overview} />
           <ButtonPanel />
+          {/* <GlobalSearch /> */}
           <ReportData />
         </div>
 

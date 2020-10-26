@@ -12,7 +12,24 @@ class OverviewPanel extends Component {
         <div className="content">
           <table>
             <tbody>
-              {panel.data.map(({ Name, Value }) => {
+              {panel.data.map(({ Name, Value, modify }) => {
+                // Value = panel.data[Value]
+                if (modify) {
+                  try {
+                    Value = modify(Value);
+                  } catch (err) {
+                    console.error(err);
+                    Value = "Unknown";
+                  }
+                }
+
+                if("" + Value === "true"){
+                  Value = "true ✔️"
+                }
+                if("" + Value === "false"){
+                  Value = "false ❌"
+                }
+                
                 if (Value === null) {
                   Value = "Unknown";
                 }

@@ -48,7 +48,12 @@ $information = [PSCustomObject]@{
     Drivers             = Get-WindowsDriver -Online -All;
     Licenses            = Get-WMIInfo SoftwareLicensingProduct;
     Registry            = @{
-        CSC = Get-RegValues "HKLM:\SOFTWARE\CSC\"; 
+        CSC = @{
+            All          = Get-RegValues "HKLM:\SOFTWARE\CSC\";
+            Applications = Get-RegValues "HKLM:\SOFTWARE\CSC\Applications";
+            Packages     = Get-RegValues "HKLM:\SOFTWARE\CSC\Packages";
+            Installation = Get-RegValues "HKLM:\SOFTWARE\CSC\Installation";
+        } ;
     };
     Network             = @{
         Interfaces = Get-NetworkInterfaces;
@@ -60,6 +65,7 @@ $information = [PSCustomObject]@{
     Logs                = Get-Logs;
     BitLocker           = Get-BitLocker;
     GPO                 = Get-GPO;
+    Ivanti              = Get-Ivanti;
 }
 
 Write-Log "Creating json file."

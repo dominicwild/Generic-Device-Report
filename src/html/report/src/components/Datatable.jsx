@@ -3,8 +3,8 @@ import SVG from "react-inlinesvg";
 import $ from "jquery";
 import "datatables.net-dt/css/jquery.dataTables.css";
 import "../css/Datatable.css";
-import "moment";
-import "datetime-moment";
+import "moment/min/moment.min.js";
+import "datetime-moment/datetime-moment.js";
 import Carat from "../SVG/Carat";
 import jsZip from "jszip";
 import "datatables.net-buttons/js/buttons.colVis.min";
@@ -41,7 +41,7 @@ class Datatable extends Component {
     if (config) {
       options = { ...options, ...config };
     }
-    const title = `Device Report - ${id}`
+    const title = `Device Report - ${id}`;
 
     $(`#${id}`).DataTable({
       ...options,
@@ -51,20 +51,21 @@ class Datatable extends Component {
           extend: "pdfHtml5",
           orientation: "landscape",
           pageSize: "LEGAL",
-          title
+          title,
         },
         {
           extend: "excelHtml5",
-          title
+          title,
         },
         {
           extend: "csvHtml5",
-          title
+          title,
         },
       ],
     });
 
     if (config?.dateFormat) {
+      $.fn.dataTable.moment(config.dateFormat);
       // $(`#${this.props.id}`).DataTable.moment(config.dateFormat);
     }
 
@@ -150,7 +151,13 @@ class Datatable extends Component {
                       {columns.map((col) => {
                         let val = row[col.Value];
                         if (col.function) {
-                          val = col.function(val, row);
+                          try {
+                            val = col.function(val, row);
+                          } catch (err){
+                            console.log("Exception thrown that caused unknown value error.")
+                            console.error(err)
+                            val = "Unknown";
+                          }
                         }
                         if (val == null) {
                           val = "Unknown";
