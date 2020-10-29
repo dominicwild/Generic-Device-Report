@@ -119,8 +119,6 @@ class Datatable extends Component {
 
   render() {
     const { data, columns, id, title, config } = this.props;
-    // console.log(data);
-    // console.log(columns);
 
     return (
       <div className="datatable-container">
@@ -153,9 +151,9 @@ class Datatable extends Component {
                         if (col.function) {
                           try {
                             val = col.function(val, row);
-                          } catch (err){
-                            console.log("Exception thrown that caused unknown value error.")
-                            console.error(err)
+                          } catch (err) {
+                            console.log("Exception thrown that caused unknown value error.");
+                            console.error(err);
                             val = "Unknown";
                           }
                         }

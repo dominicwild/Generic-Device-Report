@@ -250,8 +250,18 @@ Function ConvertTo-DateTime([string]$dateString) {
 Function Get-MSInfo32 {
     Write-Log "Getting MSInfo32 info."
     $MSInfo32 = Get-ComputerInfo
+    $MSInfo32 = $MSInfo32 | ConvertTo-EnumsAsStrings -Depth 4
 
-    return $MSInfo32 | ConvertTo-EnumsAsStrings -Depth 4
+    if(-not $MSInfo32.CsDNSHostName){
+        $computerInfo = Get-WMIInfo Win32_ComputerSystem
+        $properties = $computerInfo | Get-Member |? {$_.MemberType -eq "NoteProperty"}
+        foreach($prop in $properties){
+            $propName = $prop.Name
+            $MSInfo32["Cs$propName"] = $computerInfo.$propName
+        }
+    }
+
+    return $MSInfo32
 }
 
 Function Get-WindowsCapabailities {
@@ -482,7 +492,7 @@ Function Get-GPO {
     $fileName = "$env:COMPUTERNAME.xml"
     $fileLocation = "$folder/$fileName"
     
-    gpresult /x /f $fileLocation
+    gpresult /f /scope computer /x $fileLocation
     
     [XML]$xml = (Get-Content $fileLocation)
     $rsop = $xml.Rsop

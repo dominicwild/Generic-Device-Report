@@ -9,7 +9,7 @@ class Overview extends Component {
     return (
       <div className="overview">
         {data.map((panel) => {
-          if (panel.data) {
+          if (panel.data && Object.keys(panel.data).length != 0) {
             return <OverviewPanel panel={panel} key={panel.title} />;
           }
         })}

@@ -1,32 +1,3 @@
-const {
-  WindowsProductName,
-  WindowsInstallDateFromRegistry,
-  WindowsRegisteredOrganization,
-  WindowsVersion,
-  OsVersion,
-  OsArchitecture,
-  OsLanguage,
-  BiosName,
-  BiosReleaseDate,
-  BiosSeralNumber,
-  BiosSMBIOSMajorVersion,
-  BiosSMBIOSMinorVersion,
-  BiosStatus,
-  BiosVersion,
-  BiosManufacturer,
-  CsPhyicallyInstalledMemory,
-  CsTotalPhysicalMemory,
-  CsDescription,
-  CsDNSHostName,
-  CsDomain,
-  CsPartOfDomain,
-  CsManufacturer,
-  CsModel,
-  CsSystemSKUNumber,
-  CsSystemType,
-  CsStatus,
-} = window.data.MSInfo32;
-
 const Ivanti = window.data.Ivanti;
 
 const ivantiServerPings = [];
@@ -35,33 +6,11 @@ for (const serverPing of Ivanti.ServerPings) {
   ivantiServerPings.push({
     Name: `Can Ping ${serverPing.Server}`,
     Value: serverPing.Ping,
+    Literal: true,
   });
 }
 
-const GPO = window.data.GPO;
-
-const bitLocker = window.data.BitLocker;
-let bitLockerKeyProtection = [];
-if (bitLocker) {
-  for (const key of bitLocker.KeyProtector) {
-    bitLockerKeyProtection.push(key.KeyProtectorType);
-  }
-}
-if (bitLockerKeyProtection.length >= 1) {
-  bitLockerKeyProtection = bitLockerKeyProtection.join(", ");
-} else {
-  bitLockerKeyProtection = "None";
-}
-
-const antivirus = window.data.AntiVirus;
-
-const directAccessSettings = window.data.DirectAccess.Setting;
-
-const { TotalVisibleMemorySize } = window.data.Computer.OperatingSystem;
-
 const activationStatus = window.data.Computer.ActivationStatus;
-
-const processor = window.data.MSInfo32.CsProcessors;
 
 const license = {
   0: "Unlicensed",
@@ -94,9 +43,8 @@ function parseADPublisher(adString) {
     if (!types[adMappings[0]]) {
       types[adMappings[0]] = adMappings[1];
     }
-  }
-  if (types.OU) {
-    // Possible values in LDAP CN=Build.net, OU=Microsoft etc
+  } 
+  if (types.OU) { // Possible values in LDAP CN=Build.net, OU=Microsoft etc
     return types.OU;
   } else if (types.O) {
     return types.O;
@@ -114,378 +62,412 @@ function toGB(bytes) {
   return `${gb.toFixed(2)}`;
 }
 
-let ram = 0;
-if (CsModel === "Virtual Machine") {
-  ram = `${(TotalVisibleMemorySize / 1024 ** 2).toFixed(2)}GB`;
-} else {
-  ram = `${CsPhyicallyInstalledMemory / 1024 ** 2}GB`;
-}
-
-const powerSchemeSubGroups = window.data.Power.Scheme.SubGroups;
-const powerSettings = [];
-
-for (const group of powerSchemeSubGroups) {
-  for (const setting of group.Settings) {
-    let ACValue = setting.ACValue;
-    let DCValue = setting.DCValue;
-
-    if (!isNaN(parseInt(setting.ACValue))) {
-      ACValue = +setting.ACValue;
+function getProcessors() {
+  const processorData = window.data.MSInfo32?.CsProcessors;
+  if (!processorData) {
+    return [makeProcessorObject(processorData, 0)];
+  }
+  if (Array.isArray(processorData)) {
+    const processors = [];
+    let i = 0;
+    for (const processor of processorData) {
+      processors.push(makeProcessorObject(processor, i));
+      i++;
     }
-
-    if (!isNaN(parseInt(setting.DCValue))) {
-      DCValue = +setting.DCValue;
-    }
-
-    powerSettings.push({
-      GroupName: group.Name,
-      GroupAlias: group.Alias,
-      ACValue,
-      DCValue,
-      SettingName: setting.Name,
-      SettingUnit: setting.Unit,
-      SettingAlias: setting.Alias,
-    });
+    return processors;
+  } else {
+    return [makeProcessorObject(processorData, 0)];
   }
 }
+
+function makeProcessorObject(processor, num) {
+  return {
+    title: "CPU" + num,
+    data: processor,
+    rows: [
+      {
+        Name: "Name",
+        Value: "Name",
+      },
+      {
+        Name: "Manufacturer",
+        Value: "Manufacturer",
+      },
+      {
+        Name: "Max Clock Speed",
+        Value: "MaxClockSpeed",
+      },
+      {
+        Name: "Current Clock Speed",
+        Value: "CurrentClockSpeed",
+      },
+      {
+        Name: "Cores",
+        Value: "NumberOfCores",
+      },
+      {
+        Name: "Logical Processors",
+        Value: "NumberOfLogicalProcessors",
+      },
+      {
+        Name: "Status",
+        Value: "Status",
+      },
+      {
+        Name: "CPU Status",
+        Value: "CpuStatus",
+      },
+    ],
+  };
+}
+
+const powerSchemeSubGroups = window.data.Power?.Scheme?.SubGroups;
+let powerSettings;
+
+if (powerSchemeSubGroups) {
+  powerSettings = [];
+  for (const group of powerSchemeSubGroups) {
+    for (const setting of group.Settings) {
+      let ACValue = setting.ACValue;
+      let DCValue = setting.DCValue;
+
+      if (!isNaN(parseInt(setting.ACValue))) {
+        ACValue = +setting.ACValue;
+      }
+
+      if (!isNaN(parseInt(setting.DCValue))) {
+        DCValue = +setting.DCValue;
+      }
+
+      powerSettings.push({
+        GroupName: group.Name,
+        GroupAlias: group.Alias,
+        ACValue,
+        DCValue,
+        SettingName: setting.Name,
+        SettingUnit: setting.Unit,
+        SettingAlias: setting.Alias,
+      });
+    }
+  }
+}
+
+const processors = getProcessors();
+console.log(processors);
 
 window.config = {
   Overview: [
     {
       title: "Windows",
-      data: [
+      data: window.data.MSInfo32,
+      rows: [
         {
           Name: "OS Installed",
-          Value: WindowsProductName,
+          Value: "WindowsProductName",
         },
         {
           Name: "Activation Status",
-          Value: activationStatus,
+          Value: "activationStatus",
+          modify: () => {
+            return activationStatus;
+          },
         },
         {
           Name: "Installed Date",
-          Value: parseMSDate(WindowsInstallDateFromRegistry),
+          Value: "WindowsInstallDateFromRegistry",
+          modify: (val) => {
+            return parseMSDate(val);
+          },
         },
         {
           Name: "Registered Organisation",
-          Value: WindowsRegisteredOrganization,
+          Value: "WindowsRegisteredOrganization",
         },
         {
           Name: "OS Version",
-          Value: `${OsVersion} (${WindowsVersion})`,
+          Value: "OSVersion",
+          modify: (val, data) => {
+            const OsVersion = data.OsVersion;
+            const WindowsVersion = data.WindowsVersion;
+            return `${OsVersion} (${WindowsVersion})`;
+          },
         },
         {
           Name: "Architecture",
-          Value: OsArchitecture,
+          Value: "OsArchitecture",
         },
         {
           Name: "Language",
-          Value: OsLanguage,
+          Value: "OsLanguage",
         },
       ],
     },
     {
       title: "BIOS",
-      data: [
+      data: window.data.MSInfo32,
+      rows: [
         {
           Name: "BIOS Name",
-          Value: BiosName,
+          Value: "BiosName",
         },
         {
           Name: "Manufacturer",
-          Value: BiosManufacturer,
+          Value: "BiosManufacturer",
         },
         {
           Name: "Release Date",
-          Value: parseMSDate(BiosReleaseDate),
+          Value: "BiosReleaseDate",
+          modify: (val) => {
+            return parseMSDate(val);
+          },
         },
         {
           Name: "Serial Number",
-          Value: BiosSeralNumber,
+          Value: "BiosSeralNumber",
         },
         {
           Name: "Version",
-          Value: `${BiosVersion} (${BiosSMBIOSMajorVersion}.${BiosSMBIOSMinorVersion})`,
+          Value: "BiosVersion",
+          modify: (val, data) => {
+            const BiosVersion = data.BiosVersion;
+            const BiosSMBIOSMajorVersion = data.BiosSMBIOSMajorVersion;
+            const BiosSMBIOSMinorVersion = data.BiosSMBIOSMinorVersion;
+            return `${BiosVersion} (${BiosSMBIOSMajorVersion}.${BiosSMBIOSMinorVersion})`;
+          },
         },
         {
           Name: "Status",
-          Value: BiosStatus,
+          Value: "BiosStatus",
         },
       ],
     },
+
     {
       title: "Computer",
-      data: [
+      data: window.data.MSInfo32,
+      rows: [
         {
           Name: "Host Name",
-          Value: CsDNSHostName,
+          Value: "CsDNSHostName",
         },
         {
           Name: "Domain",
-          Value: CsDomain,
+          Value: "CsDomain",
         },
         {
           Name: "Part of Domain",
-          Value: CsPartOfDomain,
+          Value: "CsPartOfDomain",
         },
         {
           Name: "Total RAM",
-          Value: `${ram}`,
+          Value: "TotalVisibleMemorySize",
+          modify: (val, data) => {
+            const { CsModel, TotalVisibleMemorySize, CsPhyicallyInstalledMemory } = data;
+            let ram = 0;
+            if (CsModel === "Virtual Machine") {
+              ram = `${(TotalVisibleMemorySize / 1024 ** 2).toFixed(2)}GB`;
+            } else {
+              ram = `${CsPhyicallyInstalledMemory / 1024 ** 2}GB`;
+            }
+            return ram;
+          },
         },
         {
           Name: "Description",
-          Value: CsDescription,
+          Value: "CsDescription",
         },
         {
           Name: "Manufacturer",
-          Value: CsManufacturer,
+          Value: "CsManufacturer",
         },
         {
           Name: "Model",
-          Value: CsModel,
+          Value: "CsModel",
         },
         {
           Name: "SKU",
-          Value: CsSystemSKUNumber,
+          Value: "CsSystemSKUNumber",
         },
         {
           Name: "System Type",
-          Value: CsSystemType,
+          Value: "CsSystemType",
         },
         {
           Name: "Status",
-          Value: CsStatus,
-        },
-      ],
-    },
-    {
-      title: "Processor",
-      data: [
-        {
-          Name: "Name",
-          Value: processor.Name,
-        },
-        {
-          Name: "Manufacturer",
-          Value: processor.Manufacturer,
-        },
-        {
-          Name: "Max Clock Speed",
-          Value: processor.MaxClockSpeed,
-        },
-        {
-          Name: "Current Clock Speed",
-          Value: processor.CurrentClockSpeed,
-        },
-        {
-          Name: "Cores",
-          Value: processor.NumberOfCores,
-        },
-        {
-          Name: "Logical Processors",
-          Value: processor.NumberOfLogicalProcessors,
-        },
-        {
-          Name: "Status",
-          Value: processor.Status,
+          Value: "CsStatus",
         },
       ],
     },
 
-    {
-      title: "BitLocker",
-      data: [
-        {
-          Name: "Volume",
-          Value: bitLocker.MountPoint,
-        },
-        {
-          Name: "Encryption Method",
-          Value: bitLocker.EncryptionMethod,
-        },
-        {
-          Name: "Auto Unlock Key Stored",
-          Value: bitLocker.AutoUnlockedKeyStored,
-        },
-        {
-          Name: "Status",
-          Value: bitLocker.VolumeStatus,
-        },
-        {
-          Name: "Protection Status",
-          Value: bitLocker.ProtectionStatus,
-        },
-        {
-          Name: "Lock Status",
-          Value: bitLocker.LockStatus,
-        },
-        {
-          Name: "Encryption %",
-          Value: bitLocker.EncryptionPercentage,
-        },
-        {
-          Name: "Volume Type",
-          Value: bitLocker.VolumeType,
-        },
-        {
-          Name: "Capacity",
-          Value: `${+bitLocker.CapacityGB.toFixed(2)}GB`,
-        },
-        {
-          Name: "Key Protector",
-          Value: bitLockerKeyProtection,
-        },
-      ],
-    },
+    ...processors,
 
     {
       title: "Direct Access Settings",
-      data: [
+      data: window.data.DirectAccess?.Setting,
+      rows: [
         {
           Name: "Description",
-          Value: directAccessSettings.Description,
+          Value: "Description",
         },
         {
           Name: "Instance ID",
-          Value: directAccessSettings.InstanceID,
+          Value: "InstanceID",
         },
         {
           Name: "Manual Entry Point Selection Allowed",
-          Value: directAccessSettings.ManualEntryPointSelectionAllowed,
+          Value: "ManualEntryPointSelectionAllowed",
         },
         {
           Name: "Passive Mode",
-          Value: directAccessSettings.PassiveMode,
+          Value: "PassiveMode",
         },
         {
           Name: "Protection Status",
-          Value: directAccessSettings.ProtectionStatus,
+          Value: "ProtectionStatus",
         },
         {
           Name: "Policy Store",
-          Value: directAccessSettings.PolicyStore,
+          Value: "PolicyStore",
         },
         {
           Name: "Prefer Local Names Allowed",
-          Value: directAccessSettings.PreferLocalNamesAllowed,
+          Value: "PreferLocalNamesAllowed",
         },
         {
           Name: "User Interface",
-          Value: directAccessSettings.UserInterface,
+          Value: "UserInterface",
         },
       ],
     },
 
     {
       title: "Antivirus",
-      data: [
+      data: window.data.AntiVirus,
+      rows: [
         {
           Name: "Version",
-          Value: antivirus.AMProductVersion,
+          Value: "AMProductVersion",
         },
         {
           Name: "Status",
-          Value: antivirus.AMRunningMode,
+          Value: "AMRunningMode",
         },
         {
           Name: "Service Enabled",
-          Value: antivirus.AMServiceEnabled,
+          Value: "AMServiceEnabled",
         },
         {
           Name: "Antispyware Enabled",
-          Value: antivirus.AntispywareEnabled,
+          Value: "AntispywareEnabled",
         },
         {
           Name: "Antispyware Last Updated",
-          Value: parseMSDate(antivirus.AntispywareSignatureLastUpdated),
+          Value: "AntispywareSignatureLastUpdated",
+          modify: (val) => {
+            return parseMSDate(val);
+          },
         },
         {
           Name: "Antivirus Enabled",
-          Value: antivirus.AntivirusEnabled,
+          Value: "AntivirusEnabled",
         },
         {
           Name: "Antivirus Last Updated",
-          Value: parseMSDate(antivirus.AntivirusSignatureLastUpdated),
+          Value: "AntivirusSignatureLastUpdated",
+          modify: (val) => {
+            return parseMSDate(val);
+          },
         },
         {
           Name: "Behaviour Monitor Enabled",
-          Value: antivirus.BehaviorMonitorEnabled,
+          Value: "BehaviorMonitorEnabled",
         },
         {
           Name: "Real Time Protection Enabled",
-          Value: antivirus.RealTimeProtectionEnabled,
+          Value: "RealTimeProtectionEnabled",
         },
         {
           Name: "On Access Protection Enabled",
-          Value: antivirus.OnAccessProtectionEnabled,
+          Value: "OnAccessProtectionEnabled",
         },
         {
           Name: "NIS Enabled",
-          Value: antivirus.NISEnabled,
+          Value: "NISEnabled",
         },
         {
           Name: "NIS Last Updated",
-          Value: parseMSDate(antivirus.NISSignatureLastUpdated),
+          Value: "NISSignatureLastUpdated",
+          modify: (val) => {
+            return parseMSDate(val);
+          },
         },
         {
           Name: "Last Quick Scan",
-          Value: parseMSDate(antivirus.QuickScanEndTime),
+          Value: "QuickScanEndTime",
+          modify: (val) => {
+            return parseMSDate(val);
+          },
         },
         {
           Name: "Is Virtual Machine",
-          Value: antivirus.IsVirtualMachine,
+          Value: "IsVirtualMachine",
         },
       ],
     },
 
     {
       title: "GPO",
-      data: [
+      data: window.data.GPO,
+      rows: [
         {
           Name: "Name",
-          Value: GPO.Name,
+          Value: "Name",
         },
         {
           Name: "Domain",
-          Value: GPO.Domain,
+          Value: "Domain",
         },
         {
           Name: "Site",
-          Value: GPO.Site,
+          Value: "Site",
         },
         {
           Name: "Version",
-          Value: GPO.Version,
+          Value: "Version",
         },
         {
           Name: "Scope of Management (OU)",
-          Value: GPO.SOM,
+          Value: "SOM",
         },
         {
           Name: "Slow Link",
-          Value: GPO.SlowLink,
+          Value: "SlowLink",
         },
       ],
     },
 
     {
       title: "Ivanti",
-      data: [
+      data: window.data.Ivanti,
+      rows: [
         {
           Name: "Service Status",
-          Value: Ivanti.ServiceStatus != null ? Ivanti.ServiceStatus : "Service Not Detected",
+          Value: "ServiceStatus",
+          modify: (val) => {
+            return val != null ? val : "Service Not Detected";
+          },
         },
         {
           Name: "Public Key Exists",
-          Value: Ivanti.PublicKeyExists,
+          Value: "PublicKeyExists",
         },
         {
           Name: "Process Running",
-          Value: Ivanti.ProcessRunning,
+          Value: "ProcessRunning",
         },
         {
           Name: "CCH Permissions Last Updated",
-          Value: Ivanti.CCHPermissionsLastUpdated,
+          Value: "CCHPermissionsLastUpdated",
           modify: (value) => {
             let metric = "";
             let amount = 0;
@@ -518,7 +500,7 @@ window.config = {
   Tables: [
     {
       title: "Network",
-      data: window.data.Network.Interfaces,
+      data: window.data.Network?.Interfaces,
       columns: [
         {
           Name: "Name",
@@ -560,7 +542,7 @@ window.config = {
 
     {
       title: "Group Policies (GPO)",
-      data: window.data.GPO.GPO,
+      data: window.data.GPO?.GPO,
       columns: [
         {
           Name: "Name",
@@ -606,7 +588,7 @@ window.config = {
 
     {
       title: "Security Groups",
-      data: window.data.GPO.SecurityGroup,
+      data: window.data.GPO?.SecurityGroup,
       columns: [
         {
           Name: "Name",
@@ -621,7 +603,7 @@ window.config = {
 
     {
       title: "Scope of Management",
-      data: window.data.GPO.SearchedSOM,
+      data: window.data.GPO?.SearchedSOM,
       columns: [
         {
           Name: "Order",
@@ -696,8 +678,72 @@ window.config = {
     },
 
     {
+      title: "BitLocker",
+      data: window.data.BitLocker,
+      columns: [
+        {
+          Name: "Volume",
+          Value: "MountPoint",
+        },
+        {
+          Name: "Encryption Method",
+          Value: "EncryptionMethod",
+        },
+        {
+          Name: "Auto Unlock Key Stored",
+          Value: "AutoUnlockKeyStored",
+        },
+        {
+          Name: "Status",
+          Value: "VolumeStatus",
+        },
+        {
+          Name: "Protection Status",
+          Value: "ProtectionStatus",
+        },
+        {
+          Name: "Lock Status",
+          Value: "LockStatus",
+        },
+        {
+          Name: "Encryption %",
+          Value: "EncryptionPercentage",
+        },
+        {
+          Name: "Volume Type",
+          Value: "VolumeType",
+        },
+        {
+          Name: "Capacity",
+          Value: "Capacity",
+          function: (val, data) => {
+            const { CapacityGB } = data;
+            return `${+CapacityGB.toFixed(2)}GB`;
+          },
+        },
+        {
+          Name: "Key Protector",
+          Value: "Key Protector",
+          function: (val, data) => {
+            let bitLockerKeyProtection = [];
+
+            for (const key of data.KeyProtector) {
+              bitLockerKeyProtection.push(key.KeyProtectorType);
+            }
+
+            if (bitLockerKeyProtection.length >= 1) {
+              return bitLockerKeyProtection.join(", ");
+            } else {
+              return "None";
+            }
+          },
+        },
+      ],
+    },
+
+    {
       title: "CSC Applications (Registry)",
-      data: window.data.Registry.CSC.Applications,
+      data: window.data?.Registry?.CSC?.Applications,
       columns: [
         {
           Name: "Name",
@@ -744,7 +790,7 @@ window.config = {
 
     {
       title: "CSC Packages (Registry)",
-      data: window.data.Registry.CSC.Packages,
+      data: window.data?.Registry?.CSC?.Packages,
       columns: [
         {
           Name: "Name",
@@ -767,7 +813,7 @@ window.config = {
 
     {
       title: "Windows Capabilities",
-      data: window.data.WindowsCapabilities,
+      data: window.data?.WindowsCapabilities,
       columns: [
         {
           Name: "Name",
@@ -913,7 +959,7 @@ window.config = {
 
     {
       title: "Firewall Profiles",
-      data: window.data.Firewall.Profiles,
+      data: window.data.Firewall?.Profiles,
       columns: [
         {
           Name: "Profile",
@@ -975,7 +1021,7 @@ window.config = {
 
     {
       title: "Firewall Rules",
-      data: window.data.Firewall.Rules,
+      data: window.data.Firewall?.Rules,
       columns: [
         {
           Name: "Name",
@@ -1018,7 +1064,7 @@ window.config = {
 
     {
       title: "Software (Registry)",
-      data: window.data.Software.Registry,
+      data: window.data.Software?.Registry,
       options: {
         columnDefs: [
           // { width: '100px', targets: [2] }
@@ -1102,7 +1148,7 @@ window.config = {
 
     {
       title: "Software (AppX)",
-      data: window.data.Software.AppX,
+      data: window.data.Software?.AppX,
       columns: [
         {
           Name: "Name",
@@ -1143,7 +1189,7 @@ window.config = {
 
     {
       title: "Direct Access Certificates",
-      data: window.data.DirectAccess.Certificates,
+      data: window.data.DirectAccess?.Certificates,
       columns: [
         {
           Name: "Name",
@@ -1172,7 +1218,7 @@ window.config = {
 
     {
       title: "Desktops",
-      data: window.data.Computer.Desktops,
+      data: window.data.Computer?.Desktops,
       columns: [
         {
           Name: "Name",

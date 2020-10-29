@@ -4,6 +4,9 @@ import "../css/OverviewPanel.css";
 class OverviewPanel extends Component {
   render() {
     const { panel } = this.props;
+    if (!panel.rows) {
+      return <></>;
+    }
     return (
       <div className="overview-panel">
         <div className="title">
@@ -12,27 +15,30 @@ class OverviewPanel extends Component {
         <div className="content">
           <table>
             <tbody>
-              {panel.data.map(({ Name, Value, modify }) => {
-                // Value = panel.data[Value]
-                if (modify) {
-                  try {
-                    Value = modify(Value);
-                  } catch (err) {
-                    console.error(err);
-                    Value = "Unknown";
+              {panel.rows.map(({ Name, Value, modify, Literal }) => {
+                if (!Literal) {
+                  Value = panel.data[Value];
+                  if (modify) {
+                    try {
+                      Value = modify(Value, panel.data);
+                    } catch (err) {
+                      console.error(err);
+                      Value = "Unknown";
+                    }
                   }
                 }
 
-                if("" + Value === "true"){
-                  Value = "true ✔️"
+                if ("" + Value === "true") {
+                  Value = "true ✔️";
                 }
-                if("" + Value === "false"){
-                  Value = "false ❌"
+                if ("" + Value === "false") {
+                  Value = "false ❌";
                 }
-                
+
                 if (Value === null) {
                   Value = "Unknown";
                 }
+                
                 return (
                   <tr key={`${Name}${Value}`} className="row">
                     <td className="key">{Name}</td>
