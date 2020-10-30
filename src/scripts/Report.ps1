@@ -12,6 +12,7 @@ $reportFolderName = "$env:COMPUTERNAME" # Name of the report folder generate, th
 $reportFolderLocation = "$env:ProgramFiles\Standard System Reports\$reportFolderName" # Where to place the report folder.
 $buildFolder = "$PSScriptRoot\build" # The folder containing the template HTML Report to input data into
 
+$phase = "Gathering Data"
 $information = [PSCustomObject]@{
     AntiVirus           = Get-Antivirus;
     WindowsCapabilities = Get-WindowsCapabailities;
@@ -68,6 +69,7 @@ $information = [PSCustomObject]@{
     Ivanti              = Get-Ivanti;
 }
 
+$phase = "Report Generation"
 Write-Log "Creating json file."
 $json = $information | ConvertTo-Json -Depth 6 -Compress
 $json | Set-Content $jsonFileName
@@ -90,6 +92,8 @@ if ($sendEmail -and (Test-Path $reportFolderLocation)) {
 }
 
 # Invoke-Item -LiteralPath "$reportFolderLocation\index.html"
+
+Trace-AllErrors
 
 
 

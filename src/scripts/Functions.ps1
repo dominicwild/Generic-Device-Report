@@ -1,10 +1,5 @@
 . "$PSScriptRoot\Enums.ps1"
-function Write-Log($logLine) {
-    $dateString = (Get-Date).GetDateTimeFormats("g")[0]
-    $log = "[$dateString] $logLine"
-    Add-Content "log.log" $log
-    Write-Host $log
-}
+. "$PSScriptRoot\Logger.ps1" -LogFile "$env:COMPUTERNAME Report.log"
 
 Function Get-InstalledSoftware {
     Write-Log "Searching for software on $env:COMPUTERNAME"
@@ -250,7 +245,7 @@ Function ConvertTo-DateTime([string]$dateString) {
 
 Function Get-MSInfo32 {
     Write-Log "Getting MSInfo32 info."
-    # $MSInfo32 = Get-ComputerInfo
+    $MSInfo32 = Get-ComputerInfo
     if(-not $MSInfo32){
         $MSInfo32 = @{}
     }
@@ -269,11 +264,12 @@ Function Get-MSInfo32 {
         $MSInfo32.CsProcessors = Get-WMIInfo Win32_Processor | ConvertTo-EnumsAsStrings -Depth 4
         if($MSInfo32.CsProcessors.GetType().Name -ne "Object[]"){$MSInfo32.CsProcessors = @($MSInfo32.CsProcessors)}
         foreach($processor in $MSInfo32.CsProcessors){
-            $processor.Availability = [CPUAvailability]$processor.Availability
+            $processor.Availability = ([CPUAvailability]$processor.Availability).ToString()
+            $processor.CpuStatus = ([CPUStatus]$processor.CpuStatus).ToString()
         }
     }
 
-    return $MSInfo32.CsProcessors
+    return $MSInfo32
 }
 
 Function Get-WindowsCapabailities {
