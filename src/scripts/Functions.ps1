@@ -1,3 +1,4 @@
+. "$PSScriptRoot\Enums.ps1"
 function Write-Log($logLine) {
     $dateString = (Get-Date).GetDateTimeFormats("g")[0]
     $log = "[$dateString] $logLine"
@@ -249,7 +250,10 @@ Function ConvertTo-DateTime([string]$dateString) {
 
 Function Get-MSInfo32 {
     Write-Log "Getting MSInfo32 info."
-    $MSInfo32 = Get-ComputerInfo
+    # $MSInfo32 = Get-ComputerInfo
+    if(-not $MSInfo32){
+        $MSInfo32 = @{}
+    }
     $MSInfo32 = $MSInfo32 | ConvertTo-EnumsAsStrings -Depth 4
 
     if(-not $MSInfo32.CsDNSHostName){
@@ -261,7 +265,15 @@ Function Get-MSInfo32 {
         }
     }
 
-    return $MSInfo32
+    if(-not $MSInfo32.CsProcessors){
+        $MSInfo32.CsProcessors = Get-WMIInfo Win32_Processor | ConvertTo-EnumsAsStrings -Depth 4
+        if($MSInfo32.CsProcessors.GetType().Name -ne "Object[]"){$MSInfo32.CsProcessors = @($MSInfo32.CsProcessors)}
+        foreach($processor in $MSInfo32.CsProcessors){
+            $processor.Availability = [CPUAvailability]$processor.Availability
+        }
+    }
+
+    return $MSInfo32.CsProcessors
 }
 
 Function Get-WindowsCapabailities {
@@ -280,6 +292,9 @@ Function Get-FirewallProfiles {
 }
 
 Filter ConvertTo-EnumsAsStrings ([int] $Depth = 2, [int] $CurrDepth = 0) {
+    if($_.Count -eq 0){
+        return $_
+    }
     if ($_ -is [enum]) {
         # enum value -> convert to symbolic name as string
         $_.ToString() 

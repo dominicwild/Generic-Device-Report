@@ -82,7 +82,7 @@ Write-Log "Creating the report build."
 Copy-Item $buildFolder $reportFolderLocation -Recurse -Force
 Set-Content "$reportFolderLocation\data.js" "window.data = $json;"
 
-gpresult /f /h "$reportFolderLocation\gpo.html"
+gpresult /f /scope computer /h "$reportFolderLocation\gpo.html"
 Write-Log "Created report file at $reportFolderLocation\index.html"
 
 if ($sendEmail -and (Test-Path $reportFolderLocation)) {
