@@ -93,8 +93,6 @@ if ($sendEmail -and (Test-Path $reportFolderLocation)) {
 
 # Invoke-Item -LiteralPath "$reportFolderLocation\index.html"
 
-Trace-AllErrors
-
 
 
 
