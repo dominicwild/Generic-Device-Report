@@ -363,7 +363,8 @@ MigrationBackup/
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
 info.json
-diagrams/PowerStateMachine.drawio
 LAB-HYPERV01.json
 src/data2.txt
 src/html/report/public/data2.js
+test/*
+diagrams/*
