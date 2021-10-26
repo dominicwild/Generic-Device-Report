@@ -4,7 +4,7 @@
 $sendEmail = $false
 $title = "Device Report"
 $body = "Device report from machine $env:COMPUTERNAME"
-$recipients = @("dwild8@dxc.com")
+$recipients = @("dwild8@dom.com")
 
 # General configuration
 $jsonFileName = "$env:COMPUTERNAME.json" # Name of the output JSON file containing all the data for the report
